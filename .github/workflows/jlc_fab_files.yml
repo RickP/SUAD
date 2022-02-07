@@ -44,7 +44,7 @@ jobs:
         schema: 'pcb/SUAD.kicad_sch'
       # optional - PCB design file
         board: 'pcb/SUAD.kicad_pcb'
-    - uses: papeloto/action-zip@v1
+    - uses: vimtor/action-zip@v1
       name: Zip gerbers
       with:
         files: pcb/fabrication/gerbers
