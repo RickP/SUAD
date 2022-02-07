@@ -44,8 +44,33 @@ jobs:
         schema: 'pcb/SUAD.kicad_sch'
       # optional - PCB design file
         board: 'pcb/SUAD.kicad_pcb'
-    - name: upload results
-      uses: actions/upload-artifact@v2
+    - uses: papeloto/action-zip@v1
+      name: Zip gerbers
       with:
-        name: output
-        path: output
+        files: pcb/fabrication/gerbers
+        dest: gerbers.zip
+    - name: Replace gerber dir with zipfile
+      run: |
+        sudo rm -r pcb/fabrication/gerbers
+        sudo mv gerbers.zip pcb/fabrication/
+    - uses: papeloto/action-zip@v1
+      name: Make release package
+      with:
+        files: pcb/fabrication
+        dest: PCB_fabrication_files_for_jlcpcb.zip
+    - uses: actions/upload-release-asset@v1
+      name: Upload release assets   
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.once.outputs.upload_url }}
+        asset_path: PCB_fabrication_files_for_jlcpcb.zip
+        asset_name: PCB_fabrication_files_for_jlcpcb.zip
+        asset_content_type: application/octet-stream
+    - uses: author/action-rollback@stable
+      name: Rollback release on failure
+      if: failure()
+      with:
+        release_id: ${{ needs.once.outputs.id }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
