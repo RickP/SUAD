@@ -39,7 +39,7 @@ outputs:
       - F.CrtYd
       - Edge.Cuts 
       
-  - name: 'https://jlcpcb.com/'
+  - name: 'JLCPBC PickPlace'
     comment: '*_pos.csv'
     type: 'position'
     dir: 'fabrication'
@@ -63,7 +63,7 @@ outputs:
         - id: Side
           name: Layer
           
-  - name: 'https://lcsc.com/'
+  - name: 'LCSC BOM'
     comment: 'bom.csv - lcsc'
     type: 'kibom'
     dir: 'fabrication'
@@ -91,7 +91,7 @@ outputs:
       output: '%f-%i%v_jlcpcb.%x'
       separator: ','
       
-  - name: "https://en.wikipedia.org/wiki/Gerber_format"
+  - name: "Gerbers"
     comment: 'gerbers'
     type: 'gerber'
     dir: 'fabrication/gerbers'
@@ -142,7 +142,7 @@ outputs:
   # Excellon drill format:
   # You can create a map file for documentation purposes.
   # This output is what you get from the 'File/Fabrication output/Drill Files' menu in pcbnew.
-  - name: 'https://en.wikipedia.org/wiki/Gerber_format'
+  - name: 'Drills'
     comment: 'drill excellon'
     type: "excellon"
     dir: "fabrication/gerbers"
