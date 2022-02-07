@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: INTI-CMNB/KiBot@v1
+    - uses: INTI-CMNB/KiBot@v1_k6
       with:
       # Required - kibot config file
         config: pcb/jlcpcb_fab_files.kibot.yaml
