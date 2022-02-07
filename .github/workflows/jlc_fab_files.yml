@@ -41,9 +41,9 @@ jobs:
       # optional - prefix to output defined in config
         dir: 'pcb'
       # optional - schematic file
-        schema: 'SUAD.kicad_sch'
+        schema: 'pcb/SUAD.kicad_sch'
       # optional - PCB design file
-        board: 'SUAD.kicad_pcb'
+        board: 'pcb/SUAD.kicad_pcb'
     - name: upload results
       uses: actions/upload-artifact@v2
       with:
