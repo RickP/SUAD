@@ -1,3 +1,4 @@
 (fp_lib_table
-  (lib (name LCSC_Parts)(type KiCad)(uri ${KIPRJMOD}/LCSC_Parts.pretty)(options "")(descr ""))
+  (lib (name "LCSC_parts")(type "KiCad")(uri "${KIPRJMOD}/LCSC_parts.pretty")(options "")(descr ""))
+  (lib (name "RPi_Pico")(type "KiCad")(uri "${KIPRJMOD}/MCU_RaspberryPi_and_Boards.pretty")(options "")(descr ""))
 )
