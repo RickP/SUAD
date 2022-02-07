@@ -19,25 +19,6 @@ preflight:
 
 
 outputs:
-  
-  - name: 'Print schematics'
-    comment: "Print schematic (PDF)"
-    type: pdf_sch_print
-    dir: 'fabrication/docs'
-    options:
-      output: '%f-schematic.%x'
-    
-  - name: 'Print board mechanics'
-    comment: "Print board (PDF)"
-    dir: 'fabrication/docs'
-    type: pdf_pcb_print
-    options:
-      output: '%f-PCB.%x'
-    layers:
-      - F.SilkS
-      - F.Mask
-      - F.CrtYd
-      - Edge.Cuts 
       
   - name: 'JLCPBC PickPlace'
     comment: '*_pos.csv'
@@ -45,7 +26,7 @@ outputs:
     dir: 'fabrication'
     options:
       format: CSV
-      output: '%f-position%v_jlcpcb.%x'
+      output: 'position_jlcpcb.%x'
       units: millimeters
       separate_files_for_front_and_back: false
       only_smd: true
@@ -88,7 +69,7 @@ outputs:
         test_regex: true
         use_alt: false
       format: 'CSV'
-      output: '%f-%i%v_jlcpcb.%x'
+      output: 'bom_jlcpcb.%x'
       separator: ','
       
   - name: "Gerbers"

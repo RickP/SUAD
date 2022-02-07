@@ -241,7 +241,7 @@
 
   (footprint "LCSC_parts:LED_WS2812B-Mini_3.5x3.5mm" (layer "F.Cu")
     (tedit 62015504) (tstamp 06d97ace-3b8d-4a48-97f0-83f7f01caac8)
-    (at 160 115.25)
+    (at 160 115)
     (descr "https://datasheet.lcsc.com/lcsc/2005251033_Worldsemi-WS2812B-Mini_C527089.pdf")
     (tags "LED RGB")
     (property "Sheetfile" "leds.kicad_sch")

@@ -50,23 +50,32 @@ jobs:
       with:
         files: pcb/fabrication/gerbers
         dest: gerbers.zip
-    - name: Replace gerber dir with zipfile
-      run: |
-        sudo rm -r pcb/fabrication/gerbers
-        sudo mv gerbers.zip pcb/fabrication/
-    - uses: vimtor/action-zip@v1
-      name: Make release package
-      with:
-        files: pcb/fabrication
-        dest: PCB_fabrication_files_for_jlcpcb.zip
     - uses: actions/upload-release-asset@v1
-      name: Upload release assets   
+      name: Upload gerber zipfile
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.once.outputs.upload_url }}
-        asset_path: PCB_fabrication_files_for_jlcpcb.zip
-        asset_name: PCB_fabrication_files_for_jlcpcb.zip
+        asset_path: gerbers.zip
+        asset_name: Gerbers.zip
+        asset_content_type: application/octet-stream
+    - uses: actions/upload-release-asset@v1
+      name: Upload BOM   
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.once.outputs.upload_url }}
+        asset_path: pcb/fabrication/bom_jlcpcb.csv
+        asset_name: BOM.csv
+        asset_content_type: application/octet-stream
+    - uses: actions/upload-release-asset@v1
+      name: Upload P&P file   
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.once.outputs.upload_url }}
+        asset_path: pcb/fabrication/position_jlcpcb.csv
+        asset_name: PickPlace.csv
         asset_content_type: application/octet-stream
     - uses: author/action-rollback@stable
       name: Rollback release on failure
