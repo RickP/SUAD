@@ -31,7 +31,8 @@ jobs:
           
   build_kicad_fabrication_files:
     name: Make PCB fabrication files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    needs: once
     steps:
     - uses: actions/checkout@v2
     - uses: INTI-CMNB/KiBot@v1_k6
