@@ -41,7 +41,7 @@ jobs:
       # optional - prefix to output defined in config
         dir: 'pcb'
       # optional - schematic file
-        schema: '*.sch'
+        schema: 'SUAD.kicad_sch'
       # optional - PCB design file
         board: 'SUAD.kicad_pcb'
     - name: upload results
