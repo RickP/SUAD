@@ -84,7 +84,7 @@ outputs:
       # A short-cut to use for simple cases where a variant is an overkill
       dnf_filter: ''
       # [boolean=true] do not include the PCB edge layer
-      exclude_edge_layer: true
+      exclude_edge_layer: false
       # [boolean=false] do not plot the component pads in the silk screen
       exclude_pads_from_silkscreen: false
       # [boolean=false] include references and values even when they are marked as invisible
@@ -104,16 +104,16 @@ outputs:
       # [boolean=false] currently without effect
       plot_sheet_reference: false
       # [boolean=false] substract the solder mask from the silk screen
-      subtract_mask_from_silk: false
+      subtract_mask_from_silk: true
       # [boolean=true] cover the vias
       tent_vias: true
       # [boolean=false] use the auxiliar axis as origin for coordinates
-      use_aux_axis_as_origin: true
+      use_aux_axis_as_origin: false
       # [boolean=true] include netlist metadata
-      use_gerber_net_attributes: true
+      use_gerber_net_attributes: false
       # [boolean=true] use the extended X2 format
-      use_gerber_x2_attributes: true
-      disable_aperture_macros: false
+      use_gerber_x2_attributes: false
+      disable_aperture_macros: true
       # [boolean=false] use legacy Protel file extensions
       use_protel_extensions: false
       # [string=''] Board variant to apply
