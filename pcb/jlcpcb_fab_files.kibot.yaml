@@ -112,8 +112,8 @@ outputs:
       # [boolean=true] include netlist metadata
       use_gerber_net_attributes: true
       # [boolean=true] use the extended X2 format
-      use_gerber_x2_attributes: false
-      disable_aperture_macros: true
+      use_gerber_x2_attributes: true
+      disable_aperture_macros: false
       # [boolean=false] use legacy Protel file extensions
       use_protel_extensions: false
       # [string=''] Board variant to apply
@@ -145,7 +145,7 @@ outputs:
       # [string='%f-%i%v.%x'] name for the drill file, KiCad defaults if empty (%i='PTH_drill'). Affected by global options
       output: '%i%v.%x'
       # [boolean=true] generate one file for both, plated holes and non-plated holes, instead of two separated files
-      pth_and_npth_single_file: false
+      pth_and_npth_single_file: true
       # [dict|string] name of the drill report. Not generated unless a name is specified
       report:
         # [string=''] name of the drill report. Not generated unless a name is specified.
