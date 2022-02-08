@@ -112,7 +112,7 @@ outputs:
       # [boolean=true] include netlist metadata
       use_gerber_net_attributes: false
       # [boolean=true] use the extended X2 format
-      use_gerber_x2_attributes: false
+      use_gerber_x2_attributes: true
       disable_aperture_macros: true
       # [boolean=false] use legacy Protel file extensions
       use_protel_extensions: true
@@ -143,13 +143,8 @@ outputs:
       # [boolean=false] invert the Y axis
       mirror_y_axis: false
       # [string='%f-%i%v.%x'] name for the drill file, KiCad defaults if empty (%i='PTH_drill'). Affected by global options
-      output: '%i%v.%x'
+      output: '%i%v.txt'
       # [boolean=true] generate one file for both, plated holes and non-plated holes, instead of two separated files
       pth_and_npth_single_file: true
-      # [dict|string] name of the drill report. Not generated unless a name is specified
-      report:
-        # [string=''] name of the drill report. Not generated unless a name is specified.
-        # (%i='drill_report' %x='txt')
-        filename: '%i.%x'
       # [boolean=false] use the auxiliar axis as origin for coordinates
       use_aux_axis_as_origin: false
