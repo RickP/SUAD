@@ -117,6 +117,7 @@ outputs:
       use_protel_extensions: false
       # [string=''] Board variant to apply
       variant: ''
+      disable_aperture_macros: true
     layers: all
 
 
