@@ -17,6 +17,8 @@ _autosave-*
 *.log
 fp-info-cache
 
+fabrication
+
 # Netlist files (exported from Eeschema)
 *.net
 
