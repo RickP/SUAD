@@ -56,7 +56,7 @@ outputs:
           - field: References
             name: Designator
           - field: Footprint
-            name: Package
+            name: Footprint
         component_aliases: [['r', 'r_small', 'res', 'resistor'], ['l', 'l_small', 'inductor'], ['c', 'c_small', 'cap', 'capacitor'], ['sw', 'switch'], ['zener', 'zenersmall'], ['d', 'diode', 'd_small']]
         fit_field: 'Variant'
         group_connectors: true
@@ -115,7 +115,7 @@ outputs:
       use_gerber_x2_attributes: false
       disable_aperture_macros: true
       # [boolean=false] use legacy Protel file extensions
-      use_protel_extensions: true
+      use_protel_extensions: false
       # [string=''] Board variant to apply
       variant: ''
     layers: all
@@ -145,6 +145,6 @@ outputs:
       # [string='%f-%i%v.%x'] name for the drill file, KiCad defaults if empty (%i='PTH_drill'). Affected by global options
       output: '%i%v.txt'
       # [boolean=true] generate one file for both, plated holes and non-plated holes, instead of two separated files
-      pth_and_npth_single_file: true
+      pth_and_npth_single_file: false
       # [boolean=false] use the auxiliar axis as origin for coordinates
       use_aux_axis_as_origin: false
