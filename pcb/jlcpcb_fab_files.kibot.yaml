@@ -97,9 +97,9 @@ outputs:
       # [string='%f-%i%v.%x'] output file name, the default KiCad name if empty. Affected by global options
       output: '%f-%i%v.%x'
       # [boolean=true] include the footprint references
-      plot_footprint_refs: true
+      plot_footprint_refs: false
       # [boolean=true] include the footprint values
-      plot_footprint_values: true
+      plot_footprint_values: false
       # [boolean=false] currently without effect
       plot_sheet_reference: false
       # [boolean=false] substract the solder mask from the silk screen
