@@ -114,7 +114,7 @@ outputs:
       use_gerber_x2_attributes: false
       disable_aperture_macros: true
       # [boolean=false] use legacy Protel file extensions
-      use_protel_extensions: true
+      use_protel_extensions: false
       # [string=''] Board variant to apply
       variant: ''
     layers: all
