@@ -28,3 +28,9 @@ fabrication
 
 # MacOS index files
 .DS_Store
+
+# C
+cmake-build-*
+build
+*.creator.user
+.DS_Store
