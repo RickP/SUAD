@@ -4,36 +4,13 @@
 #include "core1.h"
 #include "ws2812.pio.h"
 
-#define IS_RGBW false
-#define NUM_PIXELS 51
 #define WS2812_PIN 2
 
-input_devices input = {
-    .serial_key = false,
-    .radio_receive_key = false,
-    .radio_transmit_key = false,
-    .button_key = false,
-    .simon_up_key = false,
-    .simon_down_key = false,
-    .simon_left_key = false,
-    .simon_right_key = false,
-    .matrix_up_key = false,
-    .matrix_down_key = false,
-    .matrix_left_key = false,
-    .matrix_right_key = false,
-    .dip_switches = {false, false, false, false, false, false},
-    .poti_pos = 0,
-    .less_time_jumper = false,
-    .no_error_jumper = false
-};
+input_devices input;
 
-static inline void put_pixel(uint32_t pixel_grb) {
-    pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
-}
-
-static void check_input(input_devices* input) {
-
-}
+static void set_pixels(output_devices *output);
+static void check_input(input_devices* input);
+static void drive_segment(uint8_t current_segment[3]);
 
 void core1_entry() {
 
@@ -41,24 +18,189 @@ void core1_entry() {
     PIO pio = pio0;
     int sm = 0;
     uint offset = pio_add_program(pio, (const pio_program_t*) &ws2812_program);
-    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
+    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, false);
 
-    uint8_t current_segment[3] = {0, 0, 0};
+    uint8_t current_segment[3] = {0xFF, 0xFF, 0xFF};
     output_devices output;
 
+    // Initialize segment GPIOs
+    for (int i=3; i<14; i++) {
+        gpio_init(i);
+        gpio_set_dir(i, GPIO_OUT);
+        gpio_put(i, 1);
+    }
+
+    // Initialize key matrix GPIOs
+    gpio_init(22);
+    gpio_set_dir(22, GPIO_OUT);
+    gpio_put(22, 0);
+    gpio_init(26);
+    gpio_set_dir(26, GPIO_OUT);
+    gpio_put(26, 0);
+    gpio_init(27);
+    gpio_set_dir(27, GPIO_OUT);
+    gpio_put(27, 0);
+    for (int i=16; i<22; i++) {
+        gpio_init(i);
+        gpio_set_dir(i, GPIO_IN);
+        gpio_pull_down(i);
+    }
+
     while (true) {
+        // Get current input GPIO states and send them to core0
         check_input(&input);
         send_input(&input);
 
+        // Check if we have a config for the output GPIOs and set them
         if (get_output(&output, false)) {
             memcpy(current_segment, output.segment, 3);
-            printf("Core1: %i\n", current_segment[1]);
+            set_pixels(&output);
+        }
+
+        drive_segment(current_segment);
+    }
+}
+
+static void check_input(input_devices* input) {
+    // @ToDo: query keyboard matrix, jumpers and potentiometer
+    static bool key_state[3][6];
+    static bool last_key_state[3][6];
+    int row = 0;
+
+    input->poti_pos = 23;
+    // Check row 1
+    gpio_put(27, 1);
+    for (int i=16; i<22; i++) {
+        key_state[0][row++] = gpio_get(i);
+    }
+    gpio_put(27, 0);
+    // Check row 2
+    gpio_put(26, 1);
+    row = 0;
+    for (int i=16; i<22; i++) {
+        key_state[1][row++] = gpio_get(i);
+    }
+    gpio_put(26, 0);
+    // Check row 3
+    gpio_put(22, 1);
+    row = 0;
+    for (int i=16; i<22; i++) {
+        key_state[2][row++] = gpio_get(i);
+    }
+    gpio_put(22, 0);
+
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<6; j++) {
+            if (key_state[i][j] != last_key_state[i][j]) {
+                if (key_state[i][j]) {
+                    printf("Key pressed: Row %d - Col: %d\n", i, j);
+                } else {
+                    printf("Key released: Row %d - Col: %d\n", i, j);
+                }
+            }
+            last_key_state[i][j] = key_state[i][j];
+        }
+    }
+
+    input->serial_key = key_state[0][0];
+}
+
+static inline void put_pixel(uint32_t pixel_grb) {
+    pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
+}
+
+static void put_pixel_array(uint32_t *arr, int n, bool reverse) {
+    for (int i = 0; i < n; i++) {
+        if (reverse) {
+            put_pixel(arr[n - 1 - i]);
+        } else {
+            put_pixel(arr[i]);
         }
     }
 }
 
+static void drive_segment(uint8_t current_segment[3]) {
+    static uint8_t current_display_segment = 0;
+
+    const uint8_t segments[17][7] = {
+        {0, 0, 0, 0, 0, 0, 1}, // 0
+        {1, 0, 0, 1, 1, 1, 1}, // 1
+        {0, 0, 1, 0, 0, 1, 0}, // 2
+        {0, 0, 0, 0, 1, 1, 0}, // 3
+        {1, 0, 0, 1, 1, 0, 0}, // 4
+        {0, 1, 0, 0, 1, 0, 0}, // 5
+        {0, 1, 0, 0, 0, 0, 0}, // 6
+        {0, 0, 0, 1, 1, 1, 1}, // 7
+        {0, 0, 0, 0, 0, 0, 0}, // 8
+        {0, 0, 0, 0, 1, 0, 0}, // 9
+        {0, 0, 0, 1, 0, 0, 0}, // A
+        {1, 1, 0, 0, 0, 0, 0}, // b
+        {1, 1, 1, 0, 0, 1, 0}, // c
+        {1, 0, 0, 0, 0, 1, 0}, // d
+        {0, 1, 1, 0, 0, 0, 0}, // E
+        {0, 1, 1, 1, 0, 0, 0}, // F
+        {1, 1, 1, 1, 1, 1, 1}, // NONE
+    };
+
+    uint8_t segment_index = current_segment[current_display_segment] & 0x0F;
+    if ((current_segment[current_display_segment] & 0xFF) == 0xFF) {
+       segment_index = 16;
+       gpio_put(10, 1);
+    } else if ((current_segment[current_display_segment] & 0x10) == 0x10) {
+       gpio_put(10, 0);
+    } else {
+       gpio_put(10, 1);
+    }
+    gpio_put(3, segments[segment_index][0]);
+    gpio_put(4, segments[segment_index][1]);
+    gpio_put(5, segments[segment_index][2]);
+    gpio_put(6, segments[segment_index][3]);
+    gpio_put(7, segments[segment_index][4]);
+    gpio_put(8, segments[segment_index][5]);
+    gpio_put(9, segments[segment_index][6]);
+
+    switch (current_display_segment++) {
+        case 0:
+            gpio_put(11, 1);
+            gpio_put(12, 1);
+            gpio_put(13, 0);
+            break;
+        case 1:
+            gpio_put(11, 1);
+            gpio_put(12, 0);
+            gpio_put(13, 1);
+            break;
+        case 2:
+            gpio_put(11, 0);
+            gpio_put(12, 1);
+            gpio_put(13, 1);
+            current_display_segment = 0;
+            break;
+    }
+}
+
+// Put the pixels on the ws2812 bus in the right order
+static void set_pixels(output_devices *output) {
+    put_pixel_array(output->error_leds, 3, false);
+    put_pixel(output->radio_module_state);
+    put_pixel(output->radio_module_blink);
+    put_pixel(output->button_module_state);
+    put_pixel_array(output->button_module_leds, 4, false);
+    put_pixel(output->simon_module_state);
+    put_pixel(output->simon_module_blink);
+    put_pixel(output->dip_module_state);
+    put_pixel_array(output->dip_module_top, 6, true);
+    put_pixel_array(output->dip_module_bottom, 6, false);
+    put_pixel_array(output->maze_module_leds[4], 5, false);
+    put_pixel_array(output->maze_module_leds[3], 5, true);
+    put_pixel_array(output->maze_module_leds[2], 5, false);
+    put_pixel_array(output->maze_module_leds[1], 5, true);
+    put_pixel_array(output->maze_module_leds[0], 5, false);
+    put_pixel(output->maze_module_state);
+}
+
 void send_output(output_devices *output) {
-    multicore_fifo_push_timeout_us((uintptr_t) output, 10);
+    multicore_fifo_push_timeout_us((uintptr_t) output, 100);
 }
 
 bool get_output(output_devices *output, bool block) {
@@ -71,7 +213,7 @@ bool get_output(output_devices *output, bool block) {
 }
 
 void send_input(input_devices *input) {
-    multicore_fifo_push_timeout_us((uintptr_t) input, 10);
+    multicore_fifo_push_timeout_us((uintptr_t) input, 100);
 }
 
 bool get_input(input_devices *input, bool block) {
