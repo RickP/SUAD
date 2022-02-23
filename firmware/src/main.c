@@ -49,6 +49,11 @@ int main() {
     init_non_blocking_timer(&count_down, 1000);
     start_non_blocking_timer(&count_down);
 
+    uint32_t loop_counter = 0;
+    non_blocking_timer_handler loops;
+    init_non_blocking_timer(&loops, 1000);
+    start_non_blocking_timer(&loops);
+
     while (true) {
 
         get_input(&input, false);
@@ -71,5 +76,12 @@ int main() {
         // @ToDo: process game modules
 
         send_output(&output);
+
+        loop_counter++;
+        if (non_blocking_timer_expired(&loops)) {
+            printf("Core0 made %d loops per second\n", loop_counter);
+            start_non_blocking_timer(&loops);
+            loop_counter = 0;
+        }
     }
 }

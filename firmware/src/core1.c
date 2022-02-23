@@ -2,6 +2,7 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/critical_section.h"
+#include "non_blocking_timer.h"
 #include "core1.h"
 #include "ws2812.pio.h"
 
@@ -48,6 +49,11 @@ void core1_entry() {
         gpio_pull_down(i);
     }
 
+    uint32_t loop_counter = 0;
+    non_blocking_timer_handler loops;
+    init_non_blocking_timer(&loops, 1000);
+    start_non_blocking_timer(&loops);
+
     while (true) {
         // Get current input GPIO states and send them to core0
         check_input(&input);
@@ -61,6 +67,13 @@ void core1_entry() {
 
         if (output_initialized) {
             drive_segment(&output);
+        }
+
+        loop_counter++;
+        if (non_blocking_timer_expired(&loops)) {
+            printf("Core1 made %d loops per second\n", loop_counter);
+            start_non_blocking_timer(&loops);
+            loop_counter = 0;
         }
     }
 }
@@ -123,6 +136,43 @@ static void put_pixel_array(uint32_t *arr, int n, bool reverse) {
     }
 }
 
+// Put the pixels on the ws2812 bus in the right order
+static void set_pixels(output_devices *output) {
+    static uint32_t pixels[51];
+    static uint32_t last_pixels[51] = {0};
+
+    memcpy(pixels, output->error_leds, 51);
+    bool pixels_changed = false;
+    for (int i=0; i < 51; i++) {
+        if (pixels[i] != last_pixels[i]) {
+            pixels_changed = true;
+            break;
+        }
+    }
+    memcpy(last_pixels, pixels, 51);
+
+    if (!pixels_changed) {
+        return;
+    }
+
+    put_pixel_array(output->error_leds, 3, false);
+    put_pixel(output->radio_module_state);
+    put_pixel(output->radio_module_blink);
+    put_pixel(output->button_module_state);
+    put_pixel_array(output->button_module_leds, 4, false);
+    put_pixel(output->simon_module_state);
+    put_pixel(output->simon_module_blink);
+    put_pixel(output->dip_module_state);
+    put_pixel_array(output->dip_module_top, 6, true);
+    put_pixel_array(output->dip_module_bottom, 6, false);
+    put_pixel_array(output->maze_module_leds[4], 5, false);
+    put_pixel_array(output->maze_module_leds[3], 5, true);
+    put_pixel_array(output->maze_module_leds[2], 5, false);
+    put_pixel_array(output->maze_module_leds[1], 5, true);
+    put_pixel_array(output->maze_module_leds[0], 5, false);
+    put_pixel(output->maze_module_state);
+}
+
 static void drive_segment(output_devices *output) {
     static uint8_t current_display_segment = 0;
 
@@ -183,65 +233,54 @@ static void drive_segment(output_devices *output) {
     }
 }
 
-// Put the pixels on the ws2812 bus in the right order
-static void set_pixels(output_devices *output) {
-    put_pixel_array(output->error_leds, 3, false);
-    put_pixel(output->radio_module_state);
-    put_pixel(output->radio_module_blink);
-    put_pixel(output->button_module_state);
-    put_pixel_array(output->button_module_leds, 4, false);
-    put_pixel(output->simon_module_state);
-    put_pixel(output->simon_module_blink);
-    put_pixel(output->dip_module_state);
-    put_pixel_array(output->dip_module_top, 6, true);
-    put_pixel_array(output->dip_module_bottom, 6, false);
-    put_pixel_array(output->maze_module_leds[4], 5, false);
-    put_pixel_array(output->maze_module_leds[3], 5, true);
-    put_pixel_array(output->maze_module_leds[2], 5, false);
-    put_pixel_array(output->maze_module_leds[1], 5, true);
-    put_pixel_array(output->maze_module_leds[0], 5, false);
-    put_pixel(output->maze_module_state);
-}
-
 extern critical_section_t critical_output;
+static output_devices output_buffer;
 
 void send_output(output_devices *output) {
-    static output_devices output_buffer;
     critical_section_enter_blocking(&critical_output);
     output_buffer = *output;
+    output_buffer.was_updated = true;
     critical_section_exit(&critical_output);
-    multicore_fifo_push_timeout_us((uintptr_t) &output_buffer, 100);
 }
 
 bool get_output(output_devices *output, bool block) {
-    if (block || multicore_fifo_rvalid()) {
-        uintptr_t ptr = (uintptr_t) multicore_fifo_pop_blocking();
+        bool return_val = false;
         critical_section_enter_blocking(&critical_output);
-        *output = *(output_devices*) ptr;
+        if (output_buffer.was_updated) {
+            *output = output_buffer;
+            return_val = true;
+            output_buffer.was_updated = false;
+        }
         critical_section_exit(&critical_output);
-        return true;
-    }
-    return false;
+        while (block && !return_val) {
+            sleep_us(10);
+            return_val = get_output(output, block);
+        }
+        return return_val;
 }
 
 extern critical_section_t critical_input;
+static input_devices input_buffer;
 
 void send_input(input_devices *input) {
-    static input_devices input_buffer;
     critical_section_enter_blocking(&critical_input);
     input_buffer = *input;
+    input_buffer.was_updated = true;
     critical_section_exit(&critical_input);
-    printf("%lu - %lu\n", (uintptr_t) input, (uintptr_t) &input_buffer);
-    multicore_fifo_push_timeout_us((uintptr_t) &input_buffer, 100);
 }
 
 bool get_input(input_devices *input, bool block) {
-    if (block || multicore_fifo_rvalid()) {
-        uintptr_t ptr = (uintptr_t) multicore_fifo_pop_blocking();
+        bool return_val = false;
         critical_section_enter_blocking(&critical_input);
-        *input = *(input_devices*) ptr;
+        if (input_buffer.was_updated) {
+            *input = input_buffer;
+            return_val = true;
+            input_buffer.was_updated = false;
+        }
         critical_section_exit(&critical_input);
-        return true;
-    }
-    return false;
+        while (block && !return_val) {
+            sleep_us(10);
+            return_val = get_input(input, block);
+        }
+        return return_val;
 }

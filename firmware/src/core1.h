@@ -9,6 +9,7 @@ void core1_entry();
 // Struct for output device states
 typedef struct
 {
+  bool was_updated;
   uint8_t segment[3];
   uint32_t error_leds[3];
   uint32_t radio_module_state;
@@ -27,6 +28,7 @@ typedef struct
 // Struct for input device states
 typedef struct
 {
+  bool was_updated;
   bool serial_key;
   bool radio_receive_key;
   bool radio_transmit_key;

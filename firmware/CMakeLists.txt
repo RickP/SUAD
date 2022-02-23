@@ -27,7 +27,7 @@ pico_enable_stdio_uart(${APP} 1)
 pico_enable_stdio_usb(${APP} 0)
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(${APP} pico_stdlib pico_multicore pico_sync hardware_pio)
+target_link_libraries(${APP} pico_stdlib pico_multicore pico_sync hardware_pio) # tinyusb_device tinyusb_board)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(${APP})
