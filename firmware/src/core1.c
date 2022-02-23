@@ -177,7 +177,8 @@ static void drive_segment(output_devices *output) {
     const uint32_t display_mask[3] = {0x1800, 0x2800, 0x3000};
 
     const uint32_t segment_mask[17] = {
-        0x200, 0x3C8, 0x120, 0x180, 0xC8, 0x90, 0x10, 0x3C0, 0x0, 0x80, 0x40, 0x18, 0x138, 0x108, 0x30, 0x70, 0x3F8
+        0x200, 0x3C8, 0x120, 0x180, 0xC8, 0x90, 0x10, 0x3C0, 0x0,
+        0x80, 0x40, 0x18, 0x138, 0x108, 0x30, 0x70, 0x3F8
     };
 
     uint8_t segment_index = output->segment[current_display_segment] & 0x0F;
@@ -192,7 +193,6 @@ static void drive_segment(output_devices *output) {
     }
 
     uint32_t switch_mask = display_mask[current_display_segment] | segment_mask[segment_index] | dot_mask;
-
     gpio_put_masked(DISPLAY_MASK, switch_mask);
 
     if (current_display_segment++ == 2) {
