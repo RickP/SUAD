@@ -68,9 +68,9 @@ int main() {
         output.segment[2] = current_timer % 10;
 
         if (input.serial_key) {
-            output.segment[0] = 0x0F;
-            output.segment[1] = 0x03;
-            output.segment[2] = 0x0A;
+            output.segment[0] = 0x0E;
+            output.segment[1] = 0x19;
+            output.segment[2] = 0x0F;
         }
 
         // @ToDo: process game modules

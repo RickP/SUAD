@@ -6,7 +6,7 @@
 #include "core1.h"
 #include "ws2812.pio.h"
 
-#define WS2812_PIN 2
+
 
 static void set_pixels(output_devices *output);
 static void drive_segment(output_devices *output);
@@ -14,6 +14,11 @@ static void check_input(input_devices* input);
 
 static input_devices input;
 static output_devices output;
+
+#define WS2812_PIN 2
+#define DISPLAY_MASK 0x3FF8
+#define KEY_ROW_MASK 0xC400000
+#define KEY_COL_MASK 0x3F0000
 
 void core1_entry() {
 
@@ -27,25 +32,18 @@ void core1_entry() {
     bool output_initialized = false;
 
     // Initialize segment GPIOs
-    for (int i=3; i<14; i++) {
-        gpio_init(i);
-        gpio_set_dir(i, GPIO_OUT);
-        gpio_put(i, 1);
-    }
+    gpio_init_mask(DISPLAY_MASK);
+    gpio_set_dir_out_masked(DISPLAY_MASK);
+    gpio_set_mask(DISPLAY_MASK);
 
     // Initialize key matrix GPIOs
-    gpio_init(22);
-    gpio_set_dir(22, GPIO_OUT);
-    gpio_put(22, 0);
-    gpio_init(26);
-    gpio_set_dir(26, GPIO_OUT);
-    gpio_put(26, 0);
-    gpio_init(27);
-    gpio_set_dir(27, GPIO_OUT);
-    gpio_put(27, 0);
+    gpio_init_mask(KEY_ROW_MASK);
+    gpio_set_dir_out_masked(KEY_ROW_MASK);
+    gpio_clr_mask(KEY_ROW_MASK);
+
+    gpio_init_mask(KEY_COL_MASK);
+    gpio_set_dir_in_masked(KEY_COL_MASK);
     for (int i=16; i<22; i++) {
-        gpio_init(i);
-        gpio_set_dir(i, GPIO_IN);
         gpio_pull_down(i);
     }
 
@@ -79,7 +77,7 @@ void core1_entry() {
 }
 
 static void check_input(input_devices* input) {
-    // @ToDo: query keyboard matrix, jumpers and potentiometer
+    // @ToDo: query jumpers and potentiometer - use mask function for matrix
     static bool key_state[3][6];
     static bool last_key_state[3][6];
     int row = 0;
@@ -176,60 +174,29 @@ static void set_pixels(output_devices *output) {
 static void drive_segment(output_devices *output) {
     static uint8_t current_display_segment = 0;
 
-    const uint8_t segments[17][7] = {
-        {0, 0, 0, 0, 0, 0, 1}, // 0
-        {1, 0, 0, 1, 1, 1, 1}, // 1
-        {0, 0, 1, 0, 0, 1, 0}, // 2
-        {0, 0, 0, 0, 1, 1, 0}, // 3
-        {1, 0, 0, 1, 1, 0, 0}, // 4
-        {0, 1, 0, 0, 1, 0, 0}, // 5
-        {0, 1, 0, 0, 0, 0, 0}, // 6
-        {0, 0, 0, 1, 1, 1, 1}, // 7
-        {0, 0, 0, 0, 0, 0, 0}, // 8
-        {0, 0, 0, 0, 1, 0, 0}, // 9
-        {0, 0, 0, 1, 0, 0, 0}, // A
-        {1, 1, 0, 0, 0, 0, 0}, // b
-        {1, 1, 1, 0, 0, 1, 0}, // c
-        {1, 0, 0, 0, 0, 1, 0}, // d
-        {0, 1, 1, 0, 0, 0, 0}, // E
-        {0, 1, 1, 1, 0, 0, 0}, // F
-        {1, 1, 1, 1, 1, 1, 1}, // NONE
+    const uint32_t display_mask[3] = {0x1800, 0x2800, 0x3000};
+
+    const uint32_t segment_mask[17] = {
+        0x200, 0x3C8, 0x120, 0x180, 0xC8, 0x90, 0x10, 0x3C0, 0x0, 0x80, 0x40, 0x18, 0x138, 0x108, 0x30, 0x70, 0x3F8
     };
 
     uint8_t segment_index = output->segment[current_display_segment] & 0x0F;
-    if ((output->segment[current_display_segment] & 0xFF) == 0xFF) {
+    uint32_t dot_mask = 0x400;
+    if ((output->segment[current_display_segment] & 0xF0) == 0xF0) {
        segment_index = 16;
-       gpio_put(10, 1);
     } else if ((output->segment[current_display_segment] & 0x10) == 0x10) {
-       gpio_put(10, 0);
-    } else {
-       gpio_put(10, 1);
+       dot_mask = 0x0;
+       if ((output->segment[current_display_segment] & 0x20) == 0x20) {
+          segment_index = 16;
+       }
     }
-    gpio_put(3, segments[segment_index][0]);
-    gpio_put(4, segments[segment_index][1]);
-    gpio_put(5, segments[segment_index][2]);
-    gpio_put(6, segments[segment_index][3]);
-    gpio_put(7, segments[segment_index][4]);
-    gpio_put(8, segments[segment_index][5]);
-    gpio_put(9, segments[segment_index][6]);
 
-    switch (current_display_segment++) {
-        case 0:
-            gpio_put(11, 1);
-            gpio_put(12, 1);
-            gpio_put(13, 0);
-            break;
-        case 1:
-            gpio_put(11, 1);
-            gpio_put(12, 0);
-            gpio_put(13, 1);
-            break;
-        case 2:
-            gpio_put(11, 0);
-            gpio_put(12, 1);
-            gpio_put(13, 1);
-            current_display_segment = 0;
-            break;
+    uint32_t switch_mask = display_mask[current_display_segment] | segment_mask[segment_index] | dot_mask;
+
+    gpio_put_masked(DISPLAY_MASK, switch_mask);
+
+    if (current_display_segment++ == 2) {
+        current_display_segment = 0;
     }
 }
 
