@@ -210,7 +210,7 @@ void send_output(output_devices *output) {
     critical_section_enter_blocking(&critical_output);
     output_buffer = *output;
     critical_section_exit(&critical_output);
-    multicore_fifo_push_blocking((uintptr_t) &output_buffer);
+    multicore_fifo_push_timeout_us((uintptr_t) &output_buffer, 100);
 }
 
 bool get_output(output_devices *output, bool block) {
@@ -232,7 +232,7 @@ void send_input(input_devices *input) {
     input_buffer = *input;
     critical_section_exit(&critical_input);
     printf("%lu - %lu\n", (uintptr_t) input, (uintptr_t) &input_buffer);
-    multicore_fifo_push_blocking((uintptr_t) &input_buffer);
+    multicore_fifo_push_timeout_us((uintptr_t) &input_buffer, 100);
 }
 
 bool get_input(input_devices *input, bool block) {
