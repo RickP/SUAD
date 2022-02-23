@@ -2,10 +2,14 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
+#include "pico/critical_section.h"
 #include "non_blocking_timer.h"
 #include "core1.h"
 
-output_devices output = {
+critical_section_t critical_input;
+critical_section_t critical_output;
+
+static output_devices output = {
   .segment = {0xFF, 0xFF, 0xFF},
   .error_leds = {0, 0, 0},
   .radio_module_state = 0,
@@ -21,17 +25,20 @@ output_devices output = {
   .maze_module_state = 0
 };
 
-input_devices input_buffer;
+static input_devices input;
 
 int main() {
     stdio_init_all();
     init_systick();
 
+    critical_section_init(&critical_input);
+    critical_section_init(&critical_output);
+
     // Start core1
     sleep_ms(10);
     multicore_launch_core1(core1_entry);
 
-    get_input(&input_buffer, true);
+    get_input(&input, true);
 
     // @ToDo: initialize modules
 
@@ -43,10 +50,8 @@ int main() {
     start_non_blocking_timer(&count_down);
 
     while (true) {
-        input_devices input;
-        if (get_input(&input, false)) {
-            memcpy(&input_buffer, &input, sizeof(input_devices));
-        }
+
+        get_input(&input, false);
 
         // Count down timer
         if (non_blocking_timer_expired(&count_down) && current_timer > 0) {

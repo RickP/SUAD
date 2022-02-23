@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
+#include "pico/critical_section.h"
 #include "core1.h"
 #include "ws2812.pio.h"
 
 #define WS2812_PIN 2
 
-input_devices input;
-
 static void set_pixels(output_devices *output);
+static void drive_segment(output_devices *output);
 static void check_input(input_devices* input);
-static void drive_segment(uint8_t current_segment[3]);
+
+static input_devices input;
+static output_devices output;
 
 void core1_entry() {
 
@@ -20,8 +22,8 @@ void core1_entry() {
     uint offset = pio_add_program(pio, (const pio_program_t*) &ws2812_program);
     ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, false);
 
-    uint8_t current_segment[3] = {0xFF, 0xFF, 0xFF};
-    output_devices output;
+
+    bool output_initialized = false;
 
     // Initialize segment GPIOs
     for (int i=3; i<14; i++) {
@@ -53,11 +55,13 @@ void core1_entry() {
 
         // Check if we have a config for the output GPIOs and set them
         if (get_output(&output, false)) {
-            memcpy(current_segment, output.segment, 3);
             set_pixels(&output);
+            output_initialized = true;
         }
 
-        drive_segment(current_segment);
+        if (output_initialized) {
+            drive_segment(&output);
+        }
     }
 }
 
@@ -119,7 +123,7 @@ static void put_pixel_array(uint32_t *arr, int n, bool reverse) {
     }
 }
 
-static void drive_segment(uint8_t current_segment[3]) {
+static void drive_segment(output_devices *output) {
     static uint8_t current_display_segment = 0;
 
     const uint8_t segments[17][7] = {
@@ -142,11 +146,11 @@ static void drive_segment(uint8_t current_segment[3]) {
         {1, 1, 1, 1, 1, 1, 1}, // NONE
     };
 
-    uint8_t segment_index = current_segment[current_display_segment] & 0x0F;
-    if ((current_segment[current_display_segment] & 0xFF) == 0xFF) {
+    uint8_t segment_index = output->segment[current_display_segment] & 0x0F;
+    if ((output->segment[current_display_segment] & 0xFF) == 0xFF) {
        segment_index = 16;
        gpio_put(10, 1);
-    } else if ((current_segment[current_display_segment] & 0x10) == 0x10) {
+    } else if ((output->segment[current_display_segment] & 0x10) == 0x10) {
        gpio_put(10, 0);
     } else {
        gpio_put(10, 1);
@@ -199,27 +203,44 @@ static void set_pixels(output_devices *output) {
     put_pixel(output->maze_module_state);
 }
 
+extern critical_section_t critical_output;
+
 void send_output(output_devices *output) {
-    multicore_fifo_push_timeout_us((uintptr_t) output, 100);
+    static output_devices output_buffer;
+    critical_section_enter_blocking(&critical_output);
+    output_buffer = *output;
+    critical_section_exit(&critical_output);
+    multicore_fifo_push_blocking((uintptr_t) &output_buffer);
 }
 
 bool get_output(output_devices *output, bool block) {
     if (block || multicore_fifo_rvalid()) {
         uintptr_t ptr = (uintptr_t) multicore_fifo_pop_blocking();
+        critical_section_enter_blocking(&critical_output);
         *output = *(output_devices*) ptr;
+        critical_section_exit(&critical_output);
         return true;
     }
     return false;
 }
 
+extern critical_section_t critical_input;
+
 void send_input(input_devices *input) {
-    multicore_fifo_push_timeout_us((uintptr_t) input, 100);
+    static input_devices input_buffer;
+    critical_section_enter_blocking(&critical_input);
+    input_buffer = *input;
+    critical_section_exit(&critical_input);
+    printf("%lu - %lu\n", (uintptr_t) input, (uintptr_t) &input_buffer);
+    multicore_fifo_push_blocking((uintptr_t) &input_buffer);
 }
 
 bool get_input(input_devices *input, bool block) {
     if (block || multicore_fifo_rvalid()) {
         uintptr_t ptr = (uintptr_t) multicore_fifo_pop_blocking();
+        critical_section_enter_blocking(&critical_input);
         *input = *(input_devices*) ptr;
+        critical_section_exit(&critical_input);
         return true;
     }
     return false;
