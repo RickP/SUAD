@@ -18,6 +18,7 @@ pico_sdk_init()
 add_executable(${APP}
     src/main.c
     src/core1.c
+    src/modules.c
     src/non_blocking_timer.c
 )
 

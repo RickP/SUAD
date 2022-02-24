@@ -6,8 +6,6 @@
 #include "core1.h"
 #include "ws2812.pio.h"
 
-
-
 static void set_pixels(output_devices *output);
 static void drive_segment(output_devices *output);
 static void check_input(input_devices* input);
@@ -19,6 +17,8 @@ static output_devices output;
 #define DISPLAY_MASK 0x3FF8
 #define KEY_ROW_MASK 0xC400000
 #define KEY_COL_MASK 0x3F0000
+#define TIME_JUMPER 14
+#define TRIALS_JUMPER 15
 
 void core1_entry() {
 
@@ -46,6 +46,14 @@ void core1_entry() {
     for (int i=16; i<22; i++) {
         gpio_pull_down(i);
     }
+
+    // Initialize jumpers
+    gpio_init(TIME_JUMPER);
+    gpio_set_dir(TIME_JUMPER, false);
+    gpio_pull_up(TIME_JUMPER);
+    gpio_init(TRIALS_JUMPER);
+    gpio_set_dir(TRIALS_JUMPER, false);
+    gpio_pull_up(TRIALS_JUMPER);
 
     uint32_t loop_counter = 0;
     non_blocking_timer_handler loops;
@@ -77,7 +85,13 @@ void core1_entry() {
 }
 
 static void check_input(input_devices* input) {
-    // @ToDo: query jumpers and potentiometer - use mask function for matrix
+    // @ToDo: query potentiometer
+
+    // Query jumpers
+    input->less_time_jumper = gpio_get(TIME_JUMPER);
+    input->no_error_jumper = gpio_get(TRIALS_JUMPER);
+
+    // Query key matrix
     static bool key_state[3][6];
     static bool last_key_state[3][6];
     int row = 0;
@@ -85,21 +99,21 @@ static void check_input(input_devices* input) {
     input->poti_pos = 23;
     // Check row 1
     gpio_put(27, 1);
-    for (int i=16; i<22; i++) {
+    for (uint8_t i=16; i<22; i++) {
         key_state[0][row++] = gpio_get(i);
     }
     gpio_put(27, 0);
     // Check row 2
     gpio_put(26, 1);
     row = 0;
-    for (int i=16; i<22; i++) {
+    for (uint8_t i=16; i<22; i++) {
         key_state[1][row++] = gpio_get(i);
     }
     gpio_put(26, 0);
     // Check row 3
     gpio_put(22, 1);
     row = 0;
-    for (int i=16; i<22; i++) {
+    for (uint8_t i=16; i<22; i++) {
         key_state[2][row++] = gpio_get(i);
     }
     gpio_put(22, 0);

@@ -711,6 +711,8 @@ CMakeLists.txt
 src/core1.c
 src/core1.h
 src/main.c
+src/modules.c
+src/modules.h
 src/non_blocking_timer.c
 src/non_blocking_timer.h
 src/ws2812.pio
