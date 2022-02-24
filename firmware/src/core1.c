@@ -2,9 +2,11 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/critical_section.h"
+#include "hardware/adc.h"
 #include "non_blocking_timer.h"
 #include "core1.h"
 #include "ws2812.pio.h"
+#include "tusb.h"
 
 static void set_pixels(output_devices *output);
 static void drive_segment(output_devices *output);
@@ -22,12 +24,13 @@ static output_devices output;
 
 void core1_entry() {
 
+    tusb_init();
+
     // Init ws2812 pio
     PIO pio = pio0;
     int sm = 0;
     uint offset = pio_add_program(pio, (const pio_program_t*) &ws2812_program);
     ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, false);
-
 
     bool output_initialized = false;
 
@@ -47,6 +50,12 @@ void core1_entry() {
         gpio_pull_down(i);
     }
 
+    // Initialize ADC
+    adc_init();
+    adc_gpio_init(28);
+    adc_select_input(2);
+
+
     // Initialize jumpers
     gpio_init(TIME_JUMPER);
     gpio_set_dir(TIME_JUMPER, false);
@@ -61,6 +70,8 @@ void core1_entry() {
     start_non_blocking_timer(&loops);
 
     while (true) {
+        tud_task();
+
         // Get current input GPIO states and send them to core0
         check_input(&input);
         send_input(&input);

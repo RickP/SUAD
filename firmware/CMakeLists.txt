@@ -15,11 +15,15 @@ project(${APP})
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-add_executable(${APP}
+add_executable(${APP})
+
+target_sources(${APP} PUBLIC
     src/main.c
     src/core1.c
     src/modules.c
     src/non_blocking_timer.c
+    src/usb_descriptors.c
+    src/msc_disk.c
 )
 
 pico_generate_pio_header(${APP} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
@@ -27,8 +31,11 @@ pico_generate_pio_header(${APP} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_
 pico_enable_stdio_uart(${APP} 1)
 pico_enable_stdio_usb(${APP} 0)
 
+# Make sure TinyUSB can find tusb_config.h
+target_include_directories(${APP} PUBLIC src)
+
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(${APP} pico_stdlib pico_multicore pico_sync hardware_pio) # tinyusb_device tinyusb_board)
+target_link_libraries(${APP} PUBLIC pico_stdlib pico_multicore pico_sync hardware_pio hardware_adc tinyusb_device tinyusb_board)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(${APP})

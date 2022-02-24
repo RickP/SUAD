@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "pico/critical_section.h"
+#include "hardware/adc.h"
 #include "non_blocking_timer.h"
 #include "core1.h"
 #include "modules.h"
@@ -34,15 +36,25 @@ int main() {
     critical_section_init(&critical_input);
     critical_section_init(&critical_output);
 
+    modules_state_t modules_state;
+
+    // Random serial
+    adc_init();
+    adc_gpio_init(26);
+    adc_select_input(0);
+    srand(adc_read());
+    modules_state.serial[0] = (rand() & 0x05)+0x0A;
+    modules_state.serial[1] = (rand() & 0x05)+0x0A;
+    modules_state.serial[2] = (rand() & 0x05)+0x0A;
+
     // Start core1
     sleep_ms(10);
     multicore_launch_core1(core1_entry);
 
     get_input(&input, true);
 
-    modules_state_t modules_state;
     modules_state.error_count = 0;
-    modules_state.current_time = input.less_time_jumper ? 200 : 300;
+    modules_state.current_time = input.less_time_jumper ? 180 : 300;
 
     printf("Setup Done\n");
 

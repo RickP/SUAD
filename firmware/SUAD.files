@@ -713,6 +713,9 @@ src/core1.h
 src/main.c
 src/modules.c
 src/modules.h
+src/msc_disk.c
 src/non_blocking_timer.c
 src/non_blocking_timer.h
+src/tusb_config.h
+src/usb_descriptors.c
 src/ws2812.pio
