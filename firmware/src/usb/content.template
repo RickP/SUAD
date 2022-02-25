@@ -1,0 +1,7 @@
+#ifndef CONTENT_H
+#define CONTENT_H
+
+#define README_CONTENTS PDF_FILE
+#define README_SIZE PDF_SIZE
+
+#endif // CONTENT_H
