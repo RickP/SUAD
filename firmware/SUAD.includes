@@ -355,3 +355,4 @@ build
 src/modules
 src/usb
 src/lib
+src/fatfs

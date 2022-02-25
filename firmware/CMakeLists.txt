@@ -32,7 +32,12 @@ pico_enable_stdio_uart(${APP} 1)
 pico_enable_stdio_usb(${APP} 0)
 
 # Make sure headers can be found
-target_include_directories(${APP} PUBLIC src src/lib src/modules src/usb)
+target_include_directories(${APP} PUBLIC
+    src
+    src/lib
+    src/modules
+    src/usb
+)
 
 # Add pico_stdlib library which aggregates commonly used features
 target_link_libraries(${APP} PUBLIC pico_stdlib pico_multicore pico_sync hardware_pio hardware_adc tinyusb_device tinyusb_board)
