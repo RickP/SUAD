@@ -26,8 +26,6 @@
 #include "tusb.h"
 #include "content.h"
 
-#if CFG_TUD_MSC
-
 // whether host does safe-eject
 static bool ejected = false;
 
@@ -37,7 +35,12 @@ enum
   DISK_BLOCK_SIZE = 512
 };
 
-const uint8_t msc_disk[] = FS_CONTENT;
+const uint8_t fs_header[512] = FS_HEADER;
+const uint8_t fs_fat[][512] = FS_FAT;
+const uint8_t fs_directory[512] = FS_DIRECTORY;
+const uint8_t fs_content[][512] = FS_CONTENT;
+const uint8_t zeroes[512] = FS_ZEROES;
+const uint8_t FAT_SIZE = 33;
 
 
 // Invoked when received SCSI_CMD_INQUIRY
@@ -106,19 +109,25 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
 
 // Callback invoked when received READ10 command.
 // Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
+// offset will always be zero as the buffer size is equal to the sector size (x 512 bytes)
 int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
 {
   (void) lun;
 
-  if (offset != 0) {
-    printf("%d, %d\n", lba, offset);
-  }
-
   // out of ramdisk
   if ( lba >= DISK_BLOCK_NUM ) return -1;
 
-  uint8_t const* addr = &msc_disk[lba*512] + offset;
-  memcpy(buffer, addr, bufsize);
+  if (lba == 0) {
+    memcpy(buffer, fs_header, bufsize);
+  } else if (lba <= sizeof(fs_fat)/512) {
+    memcpy(buffer, fs_fat[lba-1], bufsize);
+  } else if (lba <= FAT_SIZE) {
+    memcpy(buffer, zeroes, bufsize);
+  } else if (lba == FAT_SIZE+1) {
+    memcpy(buffer, fs_directory, bufsize);
+  } else {
+    memcpy(buffer, fs_content[lba-(FAT_SIZE+2)], bufsize);
+  }
 
   return (int32_t) bufsize;
 }
@@ -184,5 +193,3 @@ int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, 
 
   return (int32_t) resplen;
 }
-
-#endif

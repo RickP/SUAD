@@ -66,8 +66,10 @@ void core1_entry() {
 
     uint32_t loop_counter = 0;
     non_blocking_timer_handler loops;
-    init_non_blocking_timer(&loops, 1000);
-    start_non_blocking_timer(&loops);
+    if (SHOW_LOOPS) {
+        init_non_blocking_timer(&loops, 1000);
+        start_non_blocking_timer(&loops);
+    }
 
     while (true) {
         tud_task();

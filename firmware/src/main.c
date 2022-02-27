@@ -62,11 +62,14 @@ int main() {
     init_non_blocking_timer(&count_down, 1000);
     start_non_blocking_timer(&count_down);
 
-    non_blocking_timer_handler loops;
-    init_non_blocking_timer(&loops, 1000);
-    start_non_blocking_timer(&loops);
 
     uint32_t loop_counter = 0;
+    non_blocking_timer_handler loops;
+
+    if (SHOW_LOOPS) {
+        init_non_blocking_timer(&loops, 1000);
+        start_non_blocking_timer(&loops);
+    }
 
     while (true) {
 
