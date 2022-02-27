@@ -86,11 +86,14 @@ void core1_entry() {
             drive_segment(&output);
         }
 
-        loop_counter++;
-        if (non_blocking_timer_expired(&loops)) {
-            printf("Core1 made %d loops per second\n", loop_counter);
-            start_non_blocking_timer(&loops);
-            loop_counter = 0;
+
+        if (SHOW_LOOPS) {
+            loop_counter++;
+            if (non_blocking_timer_expired(&loops)) {
+                printf("Core1 made %d loops per second\n", loop_counter);
+                start_non_blocking_timer(&loops);
+                loop_counter = 0;
+            }
         }
     }
 }

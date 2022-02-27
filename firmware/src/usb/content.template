@@ -1,7 +1,8 @@
 #ifndef CONTENT_H
 #define CONTENT_H
 
-#define README_CONTENTS PDF_FILE
-#define README_SIZE PDF_SIZE
+#define FS_CONTENT { \
+    $FS_CONTENT
+}
 
 #endif // CONTENT_H

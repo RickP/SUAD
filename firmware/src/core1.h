@@ -4,6 +4,8 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 
+#define SHOW_LOOPS 0
+
 void core1_entry();
 
 // Struct for output device states

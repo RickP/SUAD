@@ -19,6 +19,7 @@
 ../../pico-sdk/lib/tinyusb/hw/bsp/spresense
 ../../pico-sdk/lib/tinyusb/src/portable/ti/msp430x5xx
 ../../pico-sdk/lib/tinyusb/test/vendor/ceedling/plugins/fake_function_framework/src
+../../pico-sdk/lib/tinyusb/src/class/msc/
 ../../pico-sdk/test/hardware_pwm_test
 ../../pico-sdk/lib/tinyusb/src/portable/nxp/lpc_ip3511
 ../../pico-sdk/src/rp2040/hardware_regs/include
