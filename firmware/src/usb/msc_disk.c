@@ -36,10 +36,9 @@ enum
 };
 
 const uint8_t fs_header[512] = FS_HEADER;
-const uint8_t fs_fat[][512] = FS_FAT;
-const uint8_t fs_directory[512] = FS_DIRECTORY;
 const uint8_t fs_content[][512] = FS_CONTENT;
-const uint8_t zeroes[512] = FS_ZEROES;
+const uint32_t fs_size[] = FS_SIZE;
+const char *fs_names[] = FS_NAMES;
 const uint8_t FAT_SIZE = 33;
 
 
@@ -107,6 +106,93 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
   return true;
 }
 
+static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
+    const uint8_t fat_start[4] = {0xF8, 0xFF, 0xFF, 0xFF};
+    uint16_t skip = 0;
+    uint16_t sector_num;
+    uint16_t fs_blocks[sizeof(fs_size)];
+    for (uint16_t i; i<sizeof(fs_size); i++) {
+        fs_blocks[i] = fs_size[i]/512;
+        if (fs_size[i] % 512 != 0) fs_blocks[i]++;
+    }
+
+    if (fat_sector == 0) {
+        buffer[skip++] = 0xF8;
+        buffer[skip++] = 0xFF;
+        buffer[skip++] = 0xFF;
+        buffer[skip++] = 0xFF;
+    }
+
+    for (uint16_t i = skip; i < bufsize-1; i += 2) {
+        sector_num = (fat_sector*512+i)/2 + 1;
+        if (sector_num-1 > fs_blocks[0]) {
+            buffer[i] = 0x00;
+            buffer[i+1] = 0x00;
+        } else if (fs_blocks[0] == sector_num-2) {
+            buffer[i] = 0xFF;
+            buffer[i+1] = 0xFF;
+        } else {
+            buffer[i] = sector_num & 0xFF;
+            buffer[i+1] = sector_num >> 8;
+        }
+    }
+}
+
+static void fs_directory(uint8_t* buffer, uint32_t bufsize) {
+    uint8_t directory_list[512] = {0X00};
+    uint8_t date_fields[13] = {0X00};
+    uint16_t pos = 0;
+    // Root directory label
+    memcpy(directory_list, "ShutUp&Die ", 11);
+    pos += 11;
+    directory_list[pos++] = 0x08;
+    for (uint8_t i = 0; i<20; i++) {
+        directory_list[pos++] = 0x00;
+    }
+
+    for (uint8_t i=0; i<1; i++) {
+      char* full_name = (char*) fs_names[i];
+      char name[8] = "README  ";
+      char ext[3] = "PDF";
+      uint8_t name_length = 0;
+      uint8_t ext_length = 0;
+      bool is_extension = false;
+      for (uint8_t j=0; j<sizeof(full_name)-1; j++) {
+        char character = name[j];
+        if (character == '.') {
+            is_extension = true;
+        } else {
+            if (is_extension && ext_length < 3) {
+                ext[ext_length++] = character;
+            } else if(name_length < 8) {
+                name[name_length++] = character;
+            }
+        }
+      }
+      // Set name
+      memcpy(directory_list+pos, name, 8);
+      pos += 8;
+      memcpy(directory_list+pos, ext, 3);
+      pos += 3;
+      // Set file flags
+      directory_list[pos++] = 0x20;
+      directory_list[pos++] = 0x18;
+      // Set date stuff
+      memcpy(directory_list+pos, date_fields, 13);
+      pos += 13;
+      // Set start cluster
+      directory_list[pos++] = 0x02;
+      directory_list[pos++] = 0x00;
+      // Set file size
+      directory_list[pos++] = fs_size[i] & 0xFF;
+      directory_list[pos++] = fs_size[i] >> 8;
+      directory_list[pos++] = fs_size[i] >> 16;
+      directory_list[pos++] = fs_size[i] >> 24;
+    }
+
+    memcpy(buffer, directory_list, bufsize);
+}
+
 // Callback invoked when received READ10 command.
 // Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
 // offset will always be zero as the buffer size is equal to the sector size (x 512 bytes)
@@ -119,12 +205,10 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buff
 
   if (lba == 0) {
     memcpy(buffer, fs_header, bufsize);
-  } else if (lba <= sizeof(fs_fat)/512) {
-    memcpy(buffer, fs_fat[lba-1], bufsize);
   } else if (lba <= FAT_SIZE) {
-    memcpy(buffer, zeroes, bufsize);
+    fat_table(lba-1, buffer, bufsize);
   } else if (lba == FAT_SIZE+1) {
-    memcpy(buffer, fs_directory, bufsize);
+    fs_directory(buffer, bufsize);
   } else {
     memcpy(buffer, fs_content[lba-(FAT_SIZE+2)], bufsize);
   }

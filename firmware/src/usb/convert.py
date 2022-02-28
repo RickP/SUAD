@@ -1,19 +1,12 @@
-import os
-
-disk_image = "fat_stripped.img"
 header_template = "content.template"
 header_out = "content.h"
-
-os.system('mkdosfs -F 16 -f 1 -n "ShutUp&Die" -r 16 -s 1 -S 512 -C fat.img 4201')
-os.system('mcopy -i fat.img readme.pdf ::/')
-os.system('sed \'$ s/\\x00*$//\' fat.img > fat_stripped.img')
-os.system('rm fat.img')
+readme_file = "readme.pdf"
 
 array = "{"
 index = 0
 
 try:
-    with open(disk_image, "rb") as f:
+    with open(readme_file, "rb") as f:
         byte = f.read(1)
         while byte:
             index += 1
@@ -28,7 +21,7 @@ try:
 except IOError:
     print('Error While Opening the file!')
 
-array = array[0: -2] + " }\\"
+array = array[0: -2] + " }"
 
 # Read in the header file
 with open(header_template, 'r') as file:
@@ -36,8 +29,8 @@ with open(header_template, 'r') as file:
 
 # Replace the target string
 filedata = filedata.replace('$FS_CONTENT', array)
+filedata = filedata.replace('$FS_NAMES', '"readme.pdf"')
+filedata = filedata.replace('$FS_SIZE', str(index))
 
 with open(header_out, 'w') as file:
     file.write(filedata)
-
-os.system('rm fat_stripped.img')
