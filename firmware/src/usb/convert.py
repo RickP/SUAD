@@ -29,8 +29,9 @@ with open(header_template, 'r') as file:
 
 # Replace the target string
 filedata = filedata.replace('$FS_CONTENT', array)
-filedata = filedata.replace('$FS_NAMES', '"readme.pdf"')
 filedata = filedata.replace('$FS_SIZE', str(index))
+filedata = filedata.replace('$FS_NAMES', '{"README  ", "PDF"}')
+filedata = filedata.replace('$FS_LABEL', '"SHUTUP&DIE "')
 
 with open(header_out, 'w') as file:
     file.write(filedata)

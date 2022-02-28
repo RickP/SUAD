@@ -723,7 +723,6 @@ src/non_blocking_timer.h
 src/tusb_config.h
 src/usb/content.h
 src/usb/content.template
-src/usb/content_large.h
 src/usb/content_minimal.h
 src/usb/convert.py
 src/usb/msc_disk.c

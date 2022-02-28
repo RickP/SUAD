@@ -35,12 +35,43 @@ enum
   DISK_BLOCK_SIZE = 512
 };
 
+#define FS_HEADER { \
+0Xeb, 0X3c, 0X90, 0X6d, 0X6b, 0X66, 0X73, 0X2e, 0X66, 0X61, 0X74, 0X00, 0X02, 0X01, 0X01, 0X00, 0X01, 0X10, 0X00, 0Xc0, \
+0X20, 0Xf8, 0X21, 0X00, 0X20, 0X00, 0X02, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X80, 0X00, 0X29, 0Xcb, \
+0Xd7, 0X0c, 0X21, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X20, 0X46, 0X41, 0X54, 0X31, 0X36, 0X20, \
+0X20, 0X20, 0X0e, 0X1f, 0Xbe, 0X5b, 0X7c, 0Xac, 0X22, 0Xc0, 0X74, 0X0b, 0X56, 0Xb4, 0X0e, 0Xbb, 0X07, 0X00, 0Xcd, 0X10, \
+0X5e, 0Xeb, 0Xf0, 0X32, 0Xe4, 0Xcd, 0X16, 0Xcd, 0X19, 0Xeb, 0Xfe, 0X54, 0X68, 0X69, 0X73, 0X20, 0X69, 0X73, 0X20, 0X6e, \
+0X6f, 0X74, 0X20, 0X61, 0X20, 0X62, 0X6f, 0X6f, 0X74, 0X61, 0X62, 0X6c, 0X65, 0X20, 0X64, 0X69, 0X73, 0X6b, 0X2e, 0X20, \
+0X20, 0X50, 0X6c, 0X65, 0X61, 0X73, 0X65, 0X20, 0X69, 0X6e, 0X73, 0X65, 0X72, 0X74, 0X20, 0X61, 0X20, 0X62, 0X6f, 0X6f, \
+0X74, 0X61, 0X62, 0X6c, 0X65, 0X20, 0X66, 0X6c, 0X6f, 0X70, 0X70, 0X79, 0X20, 0X61, 0X6e, 0X64, 0X0d, 0X0a, 0X70, 0X72, \
+0X65, 0X73, 0X73, 0X20, 0X61, 0X6e, 0X79, 0X20, 0X6b, 0X65, 0X79, 0X20, 0X74, 0X6f, 0X20, 0X74, 0X72, 0X79, 0X20, 0X61, \
+0X67, 0X61, 0X69, 0X6e, 0X20, 0X2e, 0X2e, 0X2e, 0X20, 0X0d, 0X0a, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, \
+0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X55, 0Xaa, \
+}
+
 const uint8_t fs_header[512] = FS_HEADER;
 const uint8_t fs_content[][512] = FS_CONTENT;
 const uint32_t fs_size[] = FS_SIZE;
-const char *fs_names[] = FS_NAMES;
-const uint8_t FAT_SIZE = 33;
+const char *fs_names[][9] = FS_NAMES;
+const char *fs_label = FS_LABEL;
 
+#define FAT_SIZE 33
+#define NUM_FILES sizeof(fs_size)/4
 
 // Invoked when received SCSI_CMD_INQUIRY
 // Application fill vendor id, product id and revision with string up to 8, 16, 4 characters respectively
@@ -106,15 +137,19 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
   return true;
 }
 
+static void get_num_blocks(uint16_t* fs_blocks) {
+    for (uint16_t i; i<NUM_FILES; i++) {
+        fs_blocks[i] = fs_size[i]/512;
+        if (fs_size[i] % 512 != 0) fs_blocks[i]++;
+    }
+}
+
 static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
     const uint8_t fat_start[4] = {0xF8, 0xFF, 0xFF, 0xFF};
     uint16_t skip = 0;
     uint16_t sector_num;
-    uint16_t fs_blocks[sizeof(fs_size)];
-    for (uint16_t i; i<sizeof(fs_size); i++) {
-        fs_blocks[i] = fs_size[i]/512;
-        if (fs_size[i] % 512 != 0) fs_blocks[i]++;
-    }
+    uint16_t fs_blocks[NUM_FILES];
+    get_num_blocks(fs_blocks);
 
     if (fat_sector == 0) {
         buffer[skip++] = 0xF8;
@@ -139,40 +174,26 @@ static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
 }
 
 static void fs_directory(uint8_t* buffer, uint32_t bufsize) {
+
+    uint16_t fs_blocks[NUM_FILES];
+    get_num_blocks(fs_blocks);
+
     uint8_t directory_list[512] = {0X00};
     uint8_t date_fields[13] = {0X00};
     uint16_t pos = 0;
     // Root directory label
-    memcpy(directory_list, "ShutUp&Die ", 11);
+    memcpy(directory_list, fs_label, 11);
     pos += 11;
     directory_list[pos++] = 0x08;
     for (uint8_t i = 0; i<20; i++) {
         directory_list[pos++] = 0x00;
     }
 
-    for (uint8_t i=0; i<1; i++) {
-      char* full_name = (char*) fs_names[i];
-      char name[8] = "README  ";
-      char ext[3] = "PDF";
-      uint8_t name_length = 0;
-      uint8_t ext_length = 0;
-      bool is_extension = false;
-      for (uint8_t j=0; j<sizeof(full_name)-1; j++) {
-        char character = name[j];
-        if (character == '.') {
-            is_extension = true;
-        } else {
-            if (is_extension && ext_length < 3) {
-                ext[ext_length++] = character;
-            } else if(name_length < 8) {
-                name[name_length++] = character;
-            }
-        }
-      }
+    for (uint8_t i=0; i<NUM_FILES; i++) {
       // Set name
-      memcpy(directory_list+pos, name, 8);
+      memcpy(directory_list+pos, fs_names[i][0], 8);
       pos += 8;
-      memcpy(directory_list+pos, ext, 3);
+      memcpy(directory_list+pos, fs_names[i][1], 3);
       pos += 3;
       // Set file flags
       directory_list[pos++] = 0x20;
@@ -181,8 +202,12 @@ static void fs_directory(uint8_t* buffer, uint32_t bufsize) {
       memcpy(directory_list+pos, date_fields, 13);
       pos += 13;
       // Set start cluster
-      directory_list[pos++] = 0x02;
-      directory_list[pos++] = 0x00;
+      u_int16_t start_sector = 0x02;
+      for (uint8_t j=0; j < i; j++) {
+        start_sector += fs_blocks[j];
+      }
+      directory_list[pos++] = start_sector & 0xFF;
+      directory_list[pos++] = start_sector > 8;
       // Set file size
       directory_list[pos++] = fs_size[i] & 0xFF;
       directory_list[pos++] = fs_size[i] >> 8;
@@ -205,6 +230,8 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buff
 
   if (lba == 0) {
     memcpy(buffer, fs_header, bufsize);
+    // Replace label in predefined header
+    memcpy(buffer+43, fs_label, 11);
   } else if (lba <= FAT_SIZE) {
     fat_table(lba-1, buffer, bufsize);
   } else if (lba == FAT_SIZE+1) {
