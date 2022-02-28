@@ -137,19 +137,35 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
   return true;
 }
 
-static void get_num_blocks(uint16_t* fs_blocks) {
-    for (uint16_t i; i<NUM_FILES; i++) {
+static void get_num_blocks(uint32_t* fs_blocks) {
+    for (uint8_t i; i<NUM_FILES; i++) {
         fs_blocks[i] = fs_size[i]/512;
         if (fs_size[i] % 512 != 0) fs_blocks[i]++;
     }
 }
 
+static bool check_last_sector(uint32_t sector_num, uint32_t *fs_blocks) {
+    uint16_t last_block = 0;
+    for (uint8_t i=0; i < NUM_FILES; i++) {
+        last_block += fs_blocks[i];
+        if (last_block == sector_num-2) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
+
     const uint8_t fat_start[4] = {0xF8, 0xFF, 0xFF, 0xFF};
     uint16_t skip = 0;
-    uint16_t sector_num;
-    uint16_t fs_blocks[NUM_FILES];
+    uint32_t sector_num;
+    uint32_t fs_blocks[NUM_FILES];
     get_num_blocks(fs_blocks);
+    uint32_t last_block = 0;
+    for (uint8_t i=0; i < NUM_FILES; i++) {
+        last_block += fs_blocks[i];
+    }
 
     if (fat_sector == 0) {
         buffer[skip++] = 0xF8;
@@ -160,10 +176,10 @@ static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
 
     for (uint16_t i = skip; i < bufsize-1; i += 2) {
         sector_num = (fat_sector*512+i)/2 + 1;
-        if (sector_num-1 > fs_blocks[0]) {
+        if (sector_num-1 > last_block+1) {
             buffer[i] = 0x00;
             buffer[i+1] = 0x00;
-        } else if (fs_blocks[0] == sector_num-2) {
+        } else if (check_last_sector(sector_num, fs_blocks)) {
             buffer[i] = 0xFF;
             buffer[i+1] = 0xFF;
         } else {
@@ -175,7 +191,7 @@ static void fat_table(uint32_t fat_sector, uint8_t* buffer, uint32_t bufsize) {
 
 static void fs_directory(uint8_t* buffer, uint32_t bufsize) {
 
-    uint16_t fs_blocks[NUM_FILES];
+    uint32_t fs_blocks[NUM_FILES];
     get_num_blocks(fs_blocks);
 
     uint8_t directory_list[512] = {0X00};
@@ -202,12 +218,12 @@ static void fs_directory(uint8_t* buffer, uint32_t bufsize) {
       memcpy(directory_list+pos, date_fields, 13);
       pos += 13;
       // Set start cluster
-      u_int16_t start_sector = 0x02;
+      uint16_t start_sector = 0x02;
       for (uint8_t j=0; j < i; j++) {
         start_sector += fs_blocks[j];
       }
       directory_list[pos++] = start_sector & 0xFF;
-      directory_list[pos++] = start_sector > 8;
+      directory_list[pos++] = start_sector >> 8;
       // Set file size
       directory_list[pos++] = fs_size[i] & 0xFF;
       directory_list[pos++] = fs_size[i] >> 8;
@@ -232,7 +248,7 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buff
     memcpy(buffer, fs_header, bufsize);
     // Replace label in predefined header
     memcpy(buffer+43, fs_label, 11);
-  } else if (lba <= FAT_SIZE) {
+  } else if (lba < FAT_SIZE+1) {
     fat_table(lba-1, buffer, bufsize);
   } else if (lba == FAT_SIZE+1) {
     fs_directory(buffer, bufsize);
