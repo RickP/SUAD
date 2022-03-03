@@ -715,7 +715,12 @@ src/lib/non_blocking_timer.h
 src/main.c
 src/modules.c
 src/modules.h
-src/modules/modules.c
+src/modules/animations.c
+src/modules/module_1.c
+src/modules/module_2.c
+src/modules/module_3.c
+src/modules/module_4.c
+src/modules/module_5.c
 src/modules/modules.h
 src/msc_disk.c
 src/non_blocking_timer.c

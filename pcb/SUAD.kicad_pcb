@@ -1679,7 +1679,7 @@
     (property "Sheetfile" "SUAD.kicad_sch")
     (property "Sheetname" "")
     (path "/3e903008-0276-4a73-8edb-5d9dfde6297c")
-    (attr through_hole)
+    (attr through_hole exclude_from_pos_files)
     (fp_text reference "U1" (at 0 0 90) (layer "F.SilkS") hide
       (effects (font (size 1 1) (thickness 0.15)))
       (tstamp 8ef6e4b3-72c9-41c6-a6b4-18ca383281ef)

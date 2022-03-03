@@ -157,6 +157,23 @@ static void check_input(input_devices* input) {
     }
 
     input->serial_key = key_state[0][0];
+    input->radio_receive_key = key_state[1][0];
+    input->radio_transmit_key = key_state[1][1];
+    input->button_key = key_state[0][5];
+    input->simon_up_key = key_state[0][2];
+    input->simon_down_key = key_state[0][4];
+    input->simon_left_key = key_state[0][1];
+    input->simon_right_key = key_state[0][3];
+    input->matrix_up_key = key_state[1][2];
+    input->matrix_down_key = key_state[1][3];
+    input->matrix_left_key = key_state[1][4];
+    input->matrix_right_key = key_state[1][5];
+    input->dip_switches[0] = key_state[2][0];
+    input->dip_switches[1] = key_state[2][1];
+    input->dip_switches[2] = key_state[2][2];
+    input->dip_switches[3] = key_state[2][3];
+    input->dip_switches[4] = key_state[2][4];
+    input->dip_switches[5] = key_state[2][5];
 }
 
 static inline void put_pixel(uint32_t pixel_grb) {

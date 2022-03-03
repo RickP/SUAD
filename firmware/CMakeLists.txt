@@ -20,7 +20,12 @@ add_executable(${APP})
 target_sources(${APP} PUBLIC
     src/main.c
     src/core1.c
-    src/modules/modules.c
+    src/modules/module_1.c
+    src/modules/module_2.c
+    src/modules/module_3.c
+    src/modules/module_4.c
+    src/modules/module_5.c
+    src/modules/animations.c
     src/lib/non_blocking_timer.c
     src/usb/usb_descriptors.c
     src/usb/msc_disk.c

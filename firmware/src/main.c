@@ -56,13 +56,15 @@ int main() {
 
     modules_state.error_count = 0;
     modules_state.current_time = input.less_time_jumper ? 180 : 300;
+    for (uint8_t i; i < 5; i++) {
+        modules_state.module_solved[i] = false;
+    }
 
     printf("Setup Done\n");
 
     non_blocking_timer_handler count_down;
     init_non_blocking_timer(&count_down, 1000);
     start_non_blocking_timer(&count_down);
-
 
     uint32_t loop_counter = 0;
     non_blocking_timer_handler loops;
@@ -87,12 +89,9 @@ int main() {
 
         // Display serial
         if (input.serial_key) {
-            output.error_leds[0] = RED;
             output.segment[0] = modules_state.serial[0];
             output.segment[1] = modules_state.serial[1];
             output.segment[2] = modules_state.serial[2];
-        } else {
-            output.error_leds[0] = GREEN;
         }
 
         module1_process(&input, &output, &modules_state);
@@ -101,14 +100,19 @@ int main() {
         module4_process(&input, &output, &modules_state);
         module5_process(&input, &output, &modules_state);
 
+        // Set module state LEDs
+        output.radio_module_state = modules_state.module_solved[0] ? GREEN : RED;
+        output.button_module_state = modules_state.module_solved[1] ? GREEN : RED;
+        output.simon_module_state = modules_state.module_solved[2] ? GREEN : RED;
+        output.dip_module_state = modules_state.module_solved[3] ? GREEN : RED;
+        output.maze_module_state = modules_state.module_solved[4] ? GREEN : RED;
+
         // Set error Leds
-        for (uint8_t i; i<3; i++) {
+        for (uint8_t i=0; i<3; i++) {
             if (input.no_error_jumper) {
                 output.error_leds[i] = 0;
             } else {
-                output.error_leds[i] = modules_state.error_count > 0 ? RED : GREEN;
-                output.error_leds[i] = modules_state.error_count > 1 ? RED : GREEN;
-                output.error_leds[i] = modules_state.error_count > 2 ? RED : GREEN;
+                output.error_leds[i] = modules_state.error_count > i ? RED : GREEN;
             }
         }
 
