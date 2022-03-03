@@ -50,6 +50,7 @@ int main() {
     // Start core1
     sleep_ms(10);
     multicore_launch_core1(core1_entry);
+    sleep_ms(10);
 
     get_input(&input, true);
 
@@ -86,9 +87,12 @@ int main() {
 
         // Display serial
         if (input.serial_key) {
+            output.error_leds[0] = RED;
             output.segment[0] = modules_state.serial[0];
             output.segment[1] = modules_state.serial[1];
             output.segment[2] = modules_state.serial[2];
+        } else {
+            output.error_leds[0] = GREEN;
         }
 
         module1_process(&input, &output, &modules_state);

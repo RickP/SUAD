@@ -80,14 +80,13 @@ void core1_entry() {
 
         // Check if we have a config for the output GPIOs and set them
         if (get_output(&output, false)) {
-            set_pixels(&output);
             output_initialized = true;
+            set_pixels(&output);
         }
 
         if (output_initialized) {
             drive_segment(&output);
         }
-
 
         if (SHOW_LOOPS) {
             loop_counter++;
@@ -108,42 +107,52 @@ static void check_input(input_devices* input) {
     input->no_error_jumper = gpio_get(TRIALS_JUMPER);
 
     // Query key matrix
+
     static bool key_state[3][6];
     static bool last_key_state[3][6];
     int row = 0;
 
-    input->poti_pos = 23;
+    input->poti_pos = adc_read();
+
     // Check row 1
     gpio_put(27, 1);
+    sleep_us(10);
     for (uint8_t i=16; i<22; i++) {
         key_state[0][row++] = gpio_get(i);
     }
     gpio_put(27, 0);
+
+
     // Check row 2
     gpio_put(26, 1);
+    sleep_us(10);
     row = 0;
     for (uint8_t i=16; i<22; i++) {
         key_state[1][row++] = gpio_get(i);
     }
     gpio_put(26, 0);
+
     // Check row 3
     gpio_put(22, 1);
+    sleep_us(10);
     row = 0;
     for (uint8_t i=16; i<22; i++) {
         key_state[2][row++] = gpio_get(i);
     }
     gpio_put(22, 0);
 
-    for (int i=0; i<3; i++) {
-        for (int j=0; j<6; j++) {
-            if (key_state[i][j] != last_key_state[i][j]) {
-                if (key_state[i][j]) {
-                    printf("Key pressed: Row %d - Col: %d\n", i, j);
-                } else {
-                    printf("Key released: Row %d - Col: %d\n", i, j);
+    if (SHOW_KEYPRESS) {
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<6; j++) {
+                if (key_state[i][j] != last_key_state[i][j]) {
+                    if (key_state[i][j]) {
+                        printf("Key pressed: Row %d - Col: %d\n", i, j);
+                    } else {
+                        printf("Key released: Row %d - Col: %d\n", i, j);
+                    }
                 }
+                last_key_state[i][j] = key_state[i][j];
             }
-            last_key_state[i][j] = key_state[i][j];
         }
     }
 
@@ -199,6 +208,8 @@ static void set_pixels(output_devices *output) {
     put_pixel_array(output->maze_module_leds[1], 5, true);
     put_pixel_array(output->maze_module_leds[0], 5, false);
     put_pixel(output->maze_module_state);
+
+    sleep_us(400);
 }
 
 static void drive_segment(output_devices *output) {
@@ -276,7 +287,7 @@ bool get_input(input_devices *input, bool block) {
         }
         critical_section_exit(&critical_input);
         while (block && !return_val) {
-            sleep_us(10);
+            sleep_ms(1);
             return_val = get_input(input, block);
         }
         return return_val;

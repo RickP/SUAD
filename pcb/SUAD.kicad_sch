@@ -2969,6 +2969,24 @@
     (path "/bb7c62f3-97fb-42ba-a348-e2d40f60133c/8052c68a-670f-48ae-9794-b9cd2dc507d7"
       (reference "D51") (unit 1) (value "WS2812B") (footprint "LCSC_parts:LED_WS2812B-Mini_3.5x3.5mm")
     )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/a51e366e-bc3e-4a47-8f08-e311c2e26bdb"
+      (reference "D52") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/e8c8b865-43e4-4f8d-8035-0420974705c1"
+      (reference "D53") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/8076fc12-03a8-4a06-95a1-baaa5e5bcd6c"
+      (reference "D54") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/c65652be-39f3-4b18-be8a-b7a5b84f0531"
+      (reference "D55") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/762b3cb5-b94b-4456-809d-e83ae72cfca5"
+      (reference "D56") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
+    (path "/83815bd5-67b6-4b95-840e-a349881c1d3a/31a9f406-b1a6-4482-a235-82b6369a6b47"
+      (reference "D57") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-123F")
+    )
     (path "/eaae226e-deb9-441e-b7e7-5fcd405001c8"
       (reference "DS1") (unit 1) (value "SLS0563DRA1GD") (footprint "LCSC_parts:SLS0563DRA1GD")
     )
