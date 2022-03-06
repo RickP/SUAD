@@ -22,6 +22,8 @@ static output_devices output;
 #define TIME_JUMPER 14
 #define TRIALS_JUMPER 15
 
+#define DEBOUNCE_LOOPS 100
+
 void core1_entry() {
 
     tusb_init();
@@ -109,6 +111,7 @@ static void check_input(input_devices* input) {
     // Query key matrix
 
     static bool key_state[3][6];
+    static uint8_t key_counter[3][6];
     static bool last_key_state[3][6];
     int row = 0;
 
@@ -118,7 +121,10 @@ static void check_input(input_devices* input) {
     gpio_put(27, 1);
     sleep_us(10);
     for (uint8_t i=16; i<22; i++) {
-        key_state[0][row++] = gpio_get(i);
+        bool val = gpio_get(i);
+        if (val) key_counter[0][row] += key_counter[0][row] > DEBOUNCE_LOOPS ? 0 : 1;
+        else key_counter[0][row] = 0;
+        row++;
     }
     gpio_put(27, 0);
 
@@ -128,7 +134,10 @@ static void check_input(input_devices* input) {
     sleep_us(10);
     row = 0;
     for (uint8_t i=16; i<22; i++) {
-        key_state[1][row++] = gpio_get(i);
+        bool val = gpio_get(i);
+        if (val) key_counter[1][row] += key_counter[1][row] > DEBOUNCE_LOOPS ? 0 : 1;
+        else key_counter[1][row] = 0;
+        row++;
     }
     gpio_put(26, 0);
 
@@ -137,9 +146,23 @@ static void check_input(input_devices* input) {
     sleep_us(10);
     row = 0;
     for (uint8_t i=16; i<22; i++) {
-        key_state[2][row++] = gpio_get(i);
+        bool val = gpio_get(i);
+        if (val) key_counter[2][row] += key_counter[2][row] > DEBOUNCE_LOOPS ? 0 : 1;
+        else key_counter[2][row] = 0;
+        row++;
     }
     gpio_put(22, 0);
+
+
+    for (uint8_t i = 0; i < 3; i++) {
+         for (uint8_t j = 0; j < 6; j++) {
+             if (key_counter[i][j] > DEBOUNCE_LOOPS) {
+                 key_state[i][j] = 1;
+             } else if (key_state[i][j]) {
+                 key_state[i][j] = 0;
+             }
+         }
+    }
 
     if (SHOW_KEYPRESS) {
         for (int i=0; i<3; i++) {

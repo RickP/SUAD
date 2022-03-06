@@ -3,6 +3,8 @@
 #include "modules.h"
 #include "non_blocking_timer.h"
 
+static bool module_initialized = false;
+
 #define BLINK_COLOR 0x1F1F1F
 #define MORSE_SHORT 100
 #define MORSE_LONG 500
@@ -13,7 +15,6 @@ const uint16_t radio_pos[] = {3900, 3550, 3050, 2500, 1950, 1300, 850, 700};
 const uint16_t radio_freq[] = {500, 510, 520, 530, 540, 550, 560, 570};
 
 uint16_t target_freq = 0;
-static bool module_initialized = false;
 
 const uint8_t riddles[8][6] = {
     "slick",
@@ -49,7 +50,7 @@ bool is_morsing = false;
 
 non_blocking_timer_handler morse_timer;
 
-void init_module(output_devices *output) {
+static void init_module(output_devices *output) {
     target_riddle = rand() % 8;
 }
 
