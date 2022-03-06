@@ -22,7 +22,7 @@ static output_devices output;
 #define TIME_JUMPER 14
 #define TRIALS_JUMPER 15
 
-#define DEBOUNCE_LOOPS 100
+#define DEBOUNCE_LOOPS 150
 
 void core1_entry() {
 

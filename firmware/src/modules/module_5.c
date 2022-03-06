@@ -3,7 +3,7 @@
 #include <string.h>
 #include "modules.h"
 
-# define SHOW_SERIAL 1
+# define SHOW_SERIAL 0
 
 #define set_led(position, color) output->maze_module_leds[position[0]][position[1]] = color
 #define same(a, b) (a[0] == b[0] && a[1] == b[1])
