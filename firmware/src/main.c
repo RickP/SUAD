@@ -38,14 +38,23 @@ int main() {
 
     modules_state_t modules_state;
 
-    // Random serial
+    // Initialize RNG
+    uint32_t randomseed;
     adc_init();
-    adc_gpio_init(26);
-    adc_select_input(0);
-    srand(adc_read());
-    modules_state.serial[0] = (rand() & 0x05)+0x0A;
-    modules_state.serial[1] = (rand() & 0x05)+0x0A;
-    modules_state.serial[2] = (rand() & 0x05)+0x0A;
+    adc_gpio_init(28);
+    adc_select_input(2);
+    randomseed = adc_read() << 16;
+    adc_gpio_init(27);
+    adc_select_input(1);
+    randomseed += adc_read() << 16;
+    adc_select_input(3);
+    randomseed += adc_read();
+    srand(randomseed);
+
+    // Make up a random serial
+    modules_state.serial[0] = (rand() & 0x03)+0x0C;
+    modules_state.serial[1] = (rand() & 0x03)+0x0C;
+    modules_state.serial[2] = (rand() & 0x0C)+0x03;
 
     // Start core1
     sleep_ms(10);
