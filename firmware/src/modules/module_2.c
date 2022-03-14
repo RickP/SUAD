@@ -4,6 +4,8 @@
 #include "modules.h"
 #include "non_blocking_timer.h"
 
+#define MODULE_NUM 1
+
 static bool module_initialized = false;
 
 const uint8_t order[5][4] = {
@@ -88,7 +90,7 @@ void module2_process(input_devices *input, output_devices *output, modules_state
         module_initialized = true;
     }
 
-    if (!module_state->module_solved[1] && !is_pressed && input->button_key)  {
+    if (!module_state->module_solved[MODULE_NUM] && !is_pressed && input->button_key)  {
         is_pressed = true;
         // User pressed the button
         pressed_at = get_systick();
@@ -99,7 +101,7 @@ void module2_process(input_devices *input, output_devices *output, modules_state
         switch (current_config.solution) {
             case 0:
                 if (get_systick()- pressed_at < 500) {
-                    module_state->module_solved[1] = true;
+                    module_state->module_solved[MODULE_NUM] = true;
                 } else {
                     module_state->error_count += 1;
                 }
@@ -108,7 +110,7 @@ void module2_process(input_devices *input, output_devices *output, modules_state
             case 7:
             case 9:
                 if (check_display_num(current_config.solution, output)) {
-                    module_state->module_solved[1] = true;
+                    module_state->module_solved[MODULE_NUM] = true;
                 } else {
                     module_state->error_count += 1;
                 }
@@ -116,13 +118,13 @@ void module2_process(input_devices *input, output_devices *output, modules_state
             case 0xFF:
                 if (output->segment[2] < 0x0A) {
                     if (get_systick()- pressed_at < 500) {
-                        module_state->module_solved[1] = true;
+                        module_state->module_solved[MODULE_NUM] = true;
                     } else {
                         module_state->error_count += 1;
                     }
                 } else {
                     if (check_display_num(7, output)) {
-                        module_state->module_solved[1] = true;
+                        module_state->module_solved[MODULE_NUM] = true;
                     } else {
                         module_state->error_count += 1;
                     }

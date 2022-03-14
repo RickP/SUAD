@@ -3,6 +3,7 @@
 #include <string.h>
 #include "modules.h"
 
+#define MODULE_NUM 2
 # define SHOW_SERIAL 0
 
 #define set_led(position, color) output->maze_module_leds[position[0]][position[1]] = color
@@ -240,7 +241,7 @@ void module5_process(input_devices *input, output_devices *output, modules_state
     }
 
 
-    if (!module_state->module_solved[4] && (input->matrix_down_key || input->matrix_up_key || input->matrix_left_key || input->matrix_right_key)) {
+    if (!module_state->module_solved[MODULE_NUM] && (input->matrix_down_key || input->matrix_up_key || input->matrix_left_key || input->matrix_right_key)) {
         if (!button_pressed) {
             button_pressed = true;
             int8_t new_pos[2];
@@ -280,7 +281,7 @@ void module5_process(input_devices *input, output_devices *output, modules_state
             print_playfield();
 
             if (same(target_riddle.current_position, target_riddle.target_position)) {
-                module_state->module_solved[4] = true;
+                module_state->module_solved[MODULE_NUM] = true;
             }
 
         }

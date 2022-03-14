@@ -3,12 +3,14 @@
 #include "modules.h"
 #include "non_blocking_timer.h"
 
-static bool module_initialized = false;
+#define MODULE_NUM 0
 
 #define BLINK_COLOR 0x1F1F1F
 #define MORSE_SHORT 100
 #define MORSE_LONG 500
 #define MORSE_PAUSE 500
+
+static bool module_initialized = false;
 
 const uint8_t num_freqs = 8;
 const uint16_t radio_pos[] = {3900, 3550, 3050, 2500, 1950, 1300, 850, 700};
@@ -66,7 +68,7 @@ void module1_process(input_devices *input, output_devices *output, modules_state
         module_initialized = true;
     }
 
-    if (!module_state->module_solved[0] && !is_morsing && input->radio_receive_key) {
+    if (!module_state->module_solved[MODULE_NUM] && !is_morsing && input->radio_receive_key) {
         is_morsing = true;
         current_morse_pos = 0;
         morse_pause = MORSE_PAUSE;
@@ -75,8 +77,7 @@ void module1_process(input_devices *input, output_devices *output, modules_state
     if (is_morsing && non_blocking_timer_expired(&morse_timer)) {
         if (morse_pause) {
             output->radio_module_blink = 0;
-            init_non_blocking_timer(&morse_timer, morse_pause);
-            start_non_blocking_timer(&morse_timer);
+            init_and_start_non_blocking_timer(&morse_timer, morse_pause);
             morse_pause = 0;
         } else if (current_morse_pos >= 5 * 4) {
             is_morsing = false;
@@ -91,13 +92,11 @@ void module1_process(input_devices *input, output_devices *output, modules_state
             switch (morse_part) {
                 case 1:
                     output->radio_module_blink = BLINK_COLOR;
-                    init_non_blocking_timer(&morse_timer, MORSE_SHORT);
-                    start_non_blocking_timer(&morse_timer);
+                    init_and_start_non_blocking_timer(&morse_timer, MORSE_SHORT);
                     break;
                 case 2:
                     output->radio_module_blink = BLINK_COLOR;
-                    init_non_blocking_timer(&morse_timer, MORSE_LONG);
-                    start_non_blocking_timer(&morse_timer);
+                    init_and_start_non_blocking_timer(&morse_timer, MORSE_LONG);
                     break;
             }
 
@@ -121,8 +120,8 @@ void module1_process(input_devices *input, output_devices *output, modules_state
         }
 
         if (chosen_frequency == target_riddle) {
-            module_state->module_solved[0] = true;
-        } else if (!module_state->module_solved[0]) {
+            module_state->module_solved[MODULE_NUM] = true;
+        } else if (!module_state->module_solved[MODULE_NUM]) {
            module_state->error_count += 1;
         }
     } else if (button_pressed && !input->radio_transmit_key) {

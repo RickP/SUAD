@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "modules.h"
 
+#define MODULE_NUM 3
+
 static bool module_initialized = false;
 
 static void init_module(output_devices *output) {

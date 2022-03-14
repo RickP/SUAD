@@ -29,6 +29,12 @@ void start_non_blocking_timer(non_blocking_timer_handler *timer) {
     timer->timer_enabled = true;
 }
 
+void init_and_start_non_blocking_timer(non_blocking_timer_handler *timer, uint32_t u32_time_period_ms) {
+    timer->u32_t0_ms = get_systick();
+    timer->u32_timer_period = u32_time_period_ms;
+    timer->timer_enabled = true;
+}
+
 void stop_non_blocking_timer(non_blocking_timer_handler *timer) {
     timer->timer_enabled = false;
 }

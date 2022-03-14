@@ -50,6 +50,14 @@ target_link_libraries(${APP} PUBLIC pico_stdlib pico_multicore pico_sync hardwar
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(${APP})
 
+add_custom_target(pack_files
+    COMMAND python3 ../pack_msc_files.py
+)
+
+add_custom_target(small_msc
+    COMMAND cp ../src/usb/content_minimal.h ../src/usb/content.h
+)
+
 add_custom_target(flash
     COMMAND openocd -f interface/picoprobe.cfg -f target/rp2040.cfg -c "program ${APP}.elf verify reset exit"
     DEPENDS ${APP}
