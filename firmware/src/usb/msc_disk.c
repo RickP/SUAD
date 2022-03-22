@@ -138,7 +138,7 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
 }
 
 static void get_num_blocks(uint32_t* fs_blocks) {
-    for (uint8_t i; i<NUM_FILES; i++) {
+    for (uint8_t i=0; i<NUM_FILES; i++) {
         fs_blocks[i] = fs_size[i]/512;
         if (fs_size[i] % 512 != 0) fs_blocks[i]++;
     }

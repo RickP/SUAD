@@ -76,7 +76,7 @@ static void init_module(output_devices *output) {
     memcpy(&current_config, &lights[rand() % NUM_RIDDLES], sizeof(current_config));
     memcpy(current_order, order[rand() % 5], sizeof(current_order));
 
-    for (uint8_t i; i<4; i++) {
+    for (uint8_t i=0; i<4; i++) {
         output->button_module_leds[i] = current_config.colors[current_order[i]];
     }
 }
@@ -88,6 +88,12 @@ void module2_process(input_devices *input, output_devices *output, modules_state
     if (!module_initialized) {
         init_module(output);
         module_initialized = true;
+    }
+
+    if (module_state->module_solved[MODULE_NUM]) {
+        for (uint8_t i=0; i<4; i++) {
+            output->button_module_leds[i] = 0;
+        }
     }
 
     if (!module_state->module_solved[MODULE_NUM] && !is_pressed && input->button_key)  {

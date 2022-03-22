@@ -37,6 +37,8 @@ int main() {
     critical_section_init(&critical_output);
 
     modules_state_t modules_state;
+    uint8_t last_error_count = 0;
+    uint8_t last_solved_count = 0;
 
     // Initialize RNG
     uint32_t randomseed;
@@ -64,8 +66,8 @@ int main() {
     get_input(&input, true);
 
     modules_state.error_count = 0;
-    modules_state.current_time = input.less_time_jumper ? 180 : 300;
-    for (uint8_t i; i < 5; i++) {
+    modules_state.current_time = input.less_time_jumper ? 180 : 240;
+    for (uint8_t i=0; i < 5; i++) {
         modules_state.module_solved[i] = false;
     }
 
@@ -116,6 +118,25 @@ int main() {
         output.dip_module_state = modules_state.module_solved[3] ? GREEN : RED;
         output.maze_module_state = modules_state.module_solved[4] ? GREEN : RED;
 
+        // Check for fail
+        if (modules_state.current_time == 0 || modules_state.error_count > (input.no_error_jumper ? 0 : 3)) {
+            while (true) {
+                fail_animation(&output);
+                send_output(&output);
+            }
+        }
+
+        // Blink red on new error
+        if (modules_state.error_count > last_error_count) {
+            output_devices output_buffer;
+            memcpy(&output_buffer, &output, sizeof (output_devices));
+            set_all_leds(&output, RED);
+            send_output(&output);
+            sleep_ms(500);
+            memcpy(&output, &output_buffer, sizeof (output_devices));
+        }
+        last_error_count = modules_state.error_count;
+
         // Set error Leds
         for (uint8_t i=0; i<3; i++) {
             if (input.no_error_jumper) {
@@ -127,21 +148,32 @@ int main() {
 
         send_output(&output);
 
+        uint8_t num_solved = 0;
+        for (uint8_t i=0; i<5; i++) {
+            if (modules_state.module_solved[i]) {
+                num_solved++;
+            }
+        }
+
         // Check for success
-        if (modules_state.module_solved[0] && modules_state.module_solved[1] && modules_state.module_solved[2] && modules_state.module_solved[3] && modules_state.module_solved[4]) {
+        if (num_solved == 5) {
             while (true) {
                 success_animation(&output);
                 send_output(&output);
             }
         }
 
-        // Check for fail
-        if (modules_state.current_time == 0 || modules_state.error_count > (input.no_error_jumper ? 0 : 3)) {
-            while (true) {
-                fail_animation(&output);
-                send_output(&output);
-            }
+        // Blink green on new solve
+        if (num_solved > last_solved_count) {
+            output_devices output_buffer;
+            memcpy(&output_buffer, &output, sizeof (output_devices));
+            set_all_leds(&output, GREEN);
+            send_output(&output);
+            sleep_ms(500);
+            memcpy(&output, &output_buffer, sizeof (output_devices));
         }
+        last_solved_count = num_solved;
+
 
         if (SHOW_LOOPS) {
             loop_counter++;

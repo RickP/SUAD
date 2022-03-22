@@ -18,7 +18,7 @@ static non_blocking_timer_handler blink;
 
 static void init_module(output_devices *output) {
     // generate a random sequence with 6 phases
-    for (uint8_t i; i<SEQUENCE_LENGTH; i++) {
+    for (uint8_t i=0; i<SEQUENCE_LENGTH; i++) {
         switch (rand() % 4) {
             case 0:
                 sequence[i] = GREEN;
@@ -52,6 +52,7 @@ static void init_module(output_devices *output) {
 void module3_process(input_devices *input, output_devices *output, modules_state_t *module_state) {
     static bool key_pressed = false;
     static bool toggle_led = true;
+    static uint8_t correct_keypresses = 0;
     static uint8_t display_loop = 0;
     static uint8_t current_sequence_num = 0;
 
@@ -63,32 +64,69 @@ void module3_process(input_devices *input, output_devices *output, modules_state
     if (!module_state->module_solved[MODULE_NUM]) {
         if (!key_pressed && (input->simon_up_key || input->simon_down_key || input->simon_left_key || input->simon_right_key)) {
             key_pressed = true;
-            current_sequence_num++;
+            if (input->simon_up_key) {
+                if (sequence[correct_keypresses] == up_color) {
+                   correct_keypresses++;
+                } else {
+                   module_state->error_count += 1;
+                   correct_keypresses = 0;
+                }
+            } else if (input->simon_down_key) {
+                if (sequence[correct_keypresses] == down_color) {
+                   correct_keypresses++;
+                } else {
+                   module_state->error_count += 1;
+                   correct_keypresses = 0;
+                }
+            } else if (input->simon_left_key) {
+                if (sequence[correct_keypresses] == left_color) {
+                   correct_keypresses++;
+                } else {
+                   module_state->error_count += 1;
+                   correct_keypresses = 0;
+                }
+            } else if (input->simon_right_key) {
+                if (sequence[correct_keypresses] == right_color) {
+                   correct_keypresses++;
+                } else {
+                   module_state->error_count += 1;
+                   correct_keypresses = 0;
+                }
+            }
+
+            if (correct_keypresses > current_sequence_num) {
+                current_sequence_num++;
+                display_loop = current_sequence_num + 1;
+                toggle_led = false;
+                correct_keypresses = 0;
+            }
+
         } else if (key_pressed && !input->simon_up_key && !input->simon_down_key && !input->simon_left_key && !input->simon_right_key) {
             key_pressed = false;
         }
 
         if (current_sequence_num == SEQUENCE_LENGTH) {
             module_state->module_solved[MODULE_NUM] = true;
-        }
-
-        // Blink the LED
-        if (non_blocking_timer_expired(&blink)) {
-            if (toggle_led) {
-                output->simon_module_blink = sequence[display_loop];
-                init_and_start_non_blocking_timer(&blink, BLINK_PERIOD);
-                display_loop++;
-            } else {
-                output->simon_module_blink = 0;
-                if (display_loop > current_sequence_num) {
-                    display_loop = 0;
-                    init_and_start_non_blocking_timer(&blink, BLINK_PERIOD*5);
-                } else {
+            output->simon_module_blink = 0;
+        } else  {
+            // Blink the LED
+            if (non_blocking_timer_expired(&blink)) {
+                if (toggle_led) {
+                    output->simon_module_blink = sequence[display_loop];
                     init_and_start_non_blocking_timer(&blink, BLINK_PERIOD);
+                    display_loop++;
+                } else {
+                    output->simon_module_blink = 0;
+                    if (display_loop > current_sequence_num) {
+                        display_loop = 0;
+                        init_and_start_non_blocking_timer(&blink, BLINK_PERIOD*5);
+                    } else {
+                        init_and_start_non_blocking_timer(&blink, BLINK_PERIOD);
+                    }
                 }
-            }
 
-            toggle_led = !toggle_led;
+                toggle_led = !toggle_led;
+            }
         }
     }
 }

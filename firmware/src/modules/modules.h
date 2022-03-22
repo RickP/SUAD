@@ -4,10 +4,10 @@
 #include "pico/stdlib.h"
 #include "core1.h"
 
-#define RED 0x001200
-#define GREEN 0x120000
-#define BLUE 0x000012
-#define YELLOW 0x121000
+#define RED 0x001800
+#define GREEN 0x180000
+#define BLUE 0x000018
+#define YELLOW 0x181800
 
 // Struct for output device states
 typedef struct
@@ -26,5 +26,6 @@ void module5_process(input_devices *, output_devices *, modules_state_t *);
 
 void success_animation(output_devices *);
 void fail_animation(output_devices *);
+void set_all_leds(output_devices *, uint32_t);
 
 #endif // MODULES_H

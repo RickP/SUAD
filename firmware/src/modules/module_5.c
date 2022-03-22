@@ -4,7 +4,7 @@
 #include "modules.h"
 
 #define MODULE_NUM 4
-# define SHOW_SERIAL 0
+#define SHOW_SERIAL 0
 
 #define set_led(position, color) output->maze_module_leds[position[0]][position[1]] = color
 #define same(a, b) (a[0] == b[0] && a[1] == b[1])
@@ -175,7 +175,7 @@ static const maze mazes[NUM_MAZES] = {
             },{
                 {1,0}, {1,1}
             },{
-                {2,1}, {2,2}
+                {2,0}, {2,1}
             },{
                 {2,1}, {3,1}
             },{
@@ -221,6 +221,14 @@ void module5_process(input_devices *input, output_devices *output, modules_state
         set_led(target_riddle.current_position, BLUE);
     }
 
+    if (module_state->module_solved[MODULE_NUM]) {
+        for (uint8_t i=0; i<5; i++) {
+            for (uint8_t j=0; j<5; j++) {
+                uint8_t clearpos[2] = {i, j};
+                set_led(clearpos, 0);
+            }
+        }
+    }
 
     if (!module_state->module_solved[MODULE_NUM] && (input->matrix_down_key || input->matrix_up_key || input->matrix_left_key || input->matrix_right_key)) {
         if (!button_pressed) {
@@ -280,6 +288,5 @@ void module5_process(input_devices *input, output_devices *output, modules_state
     } else {
         button_pressed = false;
     }
-
 
 }

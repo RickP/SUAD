@@ -44,8 +44,7 @@ void core1_entry() {
 
     // Initialize key matrix GPIOs
     gpio_init_mask(KEY_ROW_MASK);
-    gpio_set_dir_out_masked(KEY_ROW_MASK);
-    gpio_set_mask(KEY_ROW_MASK);
+    gpio_set_dir_in_masked(KEY_ROW_MASK);
 
     gpio_init_mask(KEY_COL_MASK);
     gpio_set_dir_in_masked(KEY_COL_MASK);
@@ -117,25 +116,24 @@ static void check_input(input_devices* input) {
 
     input->poti_pos = adc_read();
 
-    bool button_pressed = false;
-
     // Check row 1
+    gpio_set_dir(27, true);
     gpio_put(27, 0);
     sleep_us(10);
     for (uint8_t i=16; i<22; i++) {
         bool val = !gpio_get(i);
         if (val) {
             key_counter[0][row] += key_counter[0][row] > DEBOUNCE_LOOPS ? 0 : 1;
-            button_pressed = true;
         } else {
             key_counter[0][row] = 0;
         }
         row++;
     }
-    gpio_put(27, 1);
+    gpio_set_dir_in_masked(KEY_ROW_MASK);
 
 
     // Check row 2
+    gpio_set_dir(26, true);
     gpio_put(26, 0);
     sleep_us(10);
     row = 0;
@@ -143,30 +141,28 @@ static void check_input(input_devices* input) {
         bool val = !gpio_get(i);
         if (val) {
             key_counter[1][row] += key_counter[1][row] > DEBOUNCE_LOOPS ? 0 : 1;
-            button_pressed = true;
         } else {
             key_counter[1][row] = 0;
         }
         row++;
     }
-    gpio_put(26, 1);
+    gpio_set_dir_in_masked(KEY_ROW_MASK);
 
-    // Check row 3 if no button is currently pressed
-    if (!button_pressed) {
-        gpio_put(22, 0);
-        sleep_us(10);
-        row = 0;
-        for (uint8_t i=16; i<22; i++) {
-            bool val = !gpio_get(i);
-            if (val) {
-                key_counter[2][row] += key_counter[2][row] > DEBOUNCE_LOOPS_DIP ? 0 : 1;
-            } else {
-                key_counter[2][row] -= key_counter[2][row] > 0 ? 1 : 0;
-            }
-            row++;
+    // Check row 3
+    gpio_set_dir(22, true);
+    gpio_put(22, 0);
+    sleep_us(10);
+    row = 0;
+    for (uint8_t i=16; i<22; i++) {
+        bool val = !gpio_get(i);
+        if (val) {
+            key_counter[2][row] += key_counter[2][row] > DEBOUNCE_LOOPS_DIP ? 0 : 1;
+        } else {
+            key_counter[2][row] -= key_counter[2][row] > 0 ? 1 : 0;
         }
-        gpio_put(22, 1);
+        row++;
     }
+    gpio_set_dir_in_masked(KEY_ROW_MASK);
 
 
     for (uint8_t i = 0; i < 2; i++) {
