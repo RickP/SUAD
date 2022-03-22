@@ -117,7 +117,8 @@ static void init_module(output_devices *output, input_devices *input) {
             output->dip_module_bottom[i] = target_riddles[i].below_color;
         }
         solved = check_solved(input);
-    } while (solved > 1);
+        printf("%d\n", solved);
+    } while (solved > 2);
 }
 
 void module4_process(input_devices *input, output_devices *output, modules_state_t *module_state) {

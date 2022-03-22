@@ -9,7 +9,7 @@ target_dir = "src/usb"
 header_template = target_dir + "/content.template"
 header_out = target_dir + "/content.h"
 
-PACK_SOURCES = False
+PACK_SOURCES = True
 source_archive_file = included_dir + "/source.zip"
 
 base_path = os.path.dirname(__file__)
@@ -30,8 +30,7 @@ if PACK_SOURCES:
         len_dir_path = len(folder_path)
         for root, _, files in os.walk(folder_path):
             for file in files:
-                if file != "content.h":
-                    print("Adding %s" % file)
+                if file != "content.h" and file != ".DS_Store":
                     file_path = os.path.join(root, file)
                     sourcezip.write(file_path)
 

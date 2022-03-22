@@ -61,7 +61,9 @@ int main() {
     // Start core1
     sleep_ms(10);
     multicore_launch_core1(core1_entry);
-    sleep_ms(10);
+
+    // Wait for input to settle
+    sleep_ms(500);
 
     get_input(&input, true);
 
