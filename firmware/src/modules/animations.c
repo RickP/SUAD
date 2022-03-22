@@ -4,6 +4,12 @@
 void success_animation(output_devices *output) {
     static bool toggle = false;
 
+    for (uint8_t i=0; i<5; i++) {
+        for (uint8_t j=0; j<5; j++) {
+            output->maze_module_leds[i][j] = toggle ? RED : GREEN;
+        }
+    }
+
     if (toggle) {
         output->segment[0] = 0xFF;
         output->segment[1] = 0xFF;

@@ -76,14 +76,12 @@ void module3_process(input_devices *input, output_devices *output, modules_state
         if (non_blocking_timer_expired(&blink)) {
             if (toggle_led) {
                 output->simon_module_blink = sequence[display_loop];
-                printf("%04x\n", sequence[display_loop]);
                 init_and_start_non_blocking_timer(&blink, BLINK_PERIOD);
                 display_loop++;
             } else {
                 output->simon_module_blink = 0;
                 if (display_loop > current_sequence_num) {
                     display_loop = 0;
-                    printf("-----\n");
                     init_and_start_non_blocking_timer(&blink, BLINK_PERIOD*5);
                 } else {
                     init_and_start_non_blocking_timer(&blink, BLINK_PERIOD);

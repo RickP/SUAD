@@ -22,7 +22,8 @@ static output_devices output;
 #define TIME_JUMPER 14
 #define TRIALS_JUMPER 15
 
-#define DEBOUNCE_LOOPS 150
+#define DEBOUNCE_LOOPS 50
+#define DEBOUNCE_LOOPS_DIP DEBOUNCE_LOOPS * 10
 
 void core1_entry() {
 
@@ -44,12 +45,12 @@ void core1_entry() {
     // Initialize key matrix GPIOs
     gpio_init_mask(KEY_ROW_MASK);
     gpio_set_dir_out_masked(KEY_ROW_MASK);
-    gpio_clr_mask(KEY_ROW_MASK);
+    gpio_set_mask(KEY_ROW_MASK);
 
     gpio_init_mask(KEY_COL_MASK);
     gpio_set_dir_in_masked(KEY_COL_MASK);
     for (int i=16; i<22; i++) {
-        gpio_pull_down(i);
+        gpio_pull_up(i);
     }
 
     // Initialize ADC
@@ -102,7 +103,6 @@ void core1_entry() {
 }
 
 static void check_input(input_devices* input) {
-    // @ToDo: query potentiometer
 
     // Query jumpers
     input->less_time_jumper = gpio_get(TIME_JUMPER);
@@ -111,58 +111,80 @@ static void check_input(input_devices* input) {
     // Query key matrix
 
     static bool key_state[3][6];
-    static uint8_t key_counter[3][6];
+    static uint16_t key_counter[3][6];
     static bool last_key_state[3][6];
     int row = 0;
 
     input->poti_pos = adc_read();
 
+    bool button_pressed = false;
+
     // Check row 1
-    gpio_put(27, 1);
+    gpio_put(27, 0);
     sleep_us(10);
     for (uint8_t i=16; i<22; i++) {
-        bool val = gpio_get(i);
-        if (val) key_counter[0][row] += key_counter[0][row] > DEBOUNCE_LOOPS ? 0 : 1;
-        else key_counter[0][row] = 0;
+        bool val = !gpio_get(i);
+        if (val) {
+            key_counter[0][row] += key_counter[0][row] > DEBOUNCE_LOOPS ? 0 : 1;
+            button_pressed = true;
+        } else {
+            key_counter[0][row] = 0;
+        }
         row++;
     }
-    gpio_put(27, 0);
+    gpio_put(27, 1);
 
 
     // Check row 2
-    gpio_put(26, 1);
-    sleep_us(10);
-    row = 0;
-    for (uint8_t i=16; i<22; i++) {
-        bool val = gpio_get(i);
-        if (val) key_counter[1][row] += key_counter[1][row] > DEBOUNCE_LOOPS ? 0 : 1;
-        else key_counter[1][row] = 0;
-        row++;
-    }
     gpio_put(26, 0);
-
-    // Check row 3
-    gpio_put(22, 1);
     sleep_us(10);
     row = 0;
     for (uint8_t i=16; i<22; i++) {
-        bool val = gpio_get(i);
-        if (val) key_counter[2][row] += key_counter[2][row] > DEBOUNCE_LOOPS ? 0 : 1;
-        else key_counter[2][row] = 0;
+        bool val = !gpio_get(i);
+        if (val) {
+            key_counter[1][row] += key_counter[1][row] > DEBOUNCE_LOOPS ? 0 : 1;
+            button_pressed = true;
+        } else {
+            key_counter[1][row] = 0;
+        }
         row++;
     }
-    gpio_put(22, 0);
+    gpio_put(26, 1);
+
+    // Check row 3 if no button is currently pressed
+    if (!button_pressed) {
+        gpio_put(22, 0);
+        sleep_us(10);
+        row = 0;
+        for (uint8_t i=16; i<22; i++) {
+            bool val = !gpio_get(i);
+            if (val) {
+                key_counter[2][row] += key_counter[2][row] > DEBOUNCE_LOOPS_DIP ? 0 : 1;
+            } else {
+                key_counter[2][row] -= key_counter[2][row] > 0 ? 1 : 0;
+            }
+            row++;
+        }
+        gpio_put(22, 1);
+    }
 
 
-    for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t i = 0; i < 2; i++) {
          for (uint8_t j = 0; j < 6; j++) {
              if (key_counter[i][j] > DEBOUNCE_LOOPS) {
                  key_state[i][j] = 1;
-             } else if (key_state[i][j]) {
+             } else if (key_counter[i][j] == 0) {
                  key_state[i][j] = 0;
              }
          }
     }
+    for (uint8_t j = 0; j < 6; j++) {
+         if (key_counter[2][j] > DEBOUNCE_LOOPS_DIP) {
+             key_state[2][j] = 1;
+         } else if (key_counter[2][j] == 0) {
+             key_state[2][j] = 0;
+         }
+     }
 
     if (SHOW_KEYPRESS) {
         for (int i=0; i<3; i++) {
@@ -215,22 +237,6 @@ static void put_pixel_array(uint32_t *arr, int n, bool reverse) {
 
 // Put the pixels on the ws2812 bus in the right order
 static void set_pixels(output_devices *output) {
-    static uint32_t pixels[51];
-    static uint32_t last_pixels[51] = {0};
-
-    memcpy(pixels, output->error_leds, 51);
-    bool pixels_changed = false;
-    for (int i=0; i < 51; i++) {
-        if (pixels[i] != last_pixels[i]) {
-            pixels_changed = true;
-            break;
-        }
-    }
-    memcpy(last_pixels, pixels, 51);
-
-    if (!pixels_changed) {
-        return;
-    }
 
     put_pixel_array(output->error_leds, 3, false);
     put_pixel(output->radio_module_state);
@@ -243,9 +249,9 @@ static void set_pixels(output_devices *output) {
     put_pixel_array(output->dip_module_top, 6, true);
     put_pixel_array(output->dip_module_bottom, 6, false);
     put_pixel_array(output->maze_module_leds[4], 5, false);
-    put_pixel_array(output->maze_module_leds[3], 5, true);
+    put_pixel_array(output->maze_module_leds[3], 5, false);
     put_pixel_array(output->maze_module_leds[2], 5, false);
-    put_pixel_array(output->maze_module_leds[1], 5, true);
+    put_pixel_array(output->maze_module_leds[1], 5, false);
     put_pixel_array(output->maze_module_leds[0], 5, false);
     put_pixel(output->maze_module_state);
 

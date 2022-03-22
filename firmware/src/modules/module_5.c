@@ -3,7 +3,7 @@
 #include <string.h>
 #include "modules.h"
 
-#define MODULE_NUM 2
+#define MODULE_NUM 4
 # define SHOW_SERIAL 0
 
 #define set_led(position, color) output->maze_module_leds[position[0]][position[1]] = color
@@ -203,33 +203,10 @@ static const maze mazes[NUM_MAZES] = {
 
 static maze target_riddle;
 
-
-static void print_playfield() {
-#if SHOW_SERIAL
-    for (uint8_t i=0; i< 5; i++) {
-        for (uint8_t j=0; j< 5; j++) {
-            uint8_t pos[2] = {i, j};
-            if (same(target_riddle.current_position, pos)) {
-                printf(" B");
-            } else if (same(target_riddle.target_position, pos)) {
-                printf(" R");
-            } else if (same(target_riddle.green_positions[0], pos) || same(target_riddle.green_positions[1], pos)) {
-                printf(" G");
-            } else {
-                printf(" *");
-            }
-        }
-        printf("\n");
-    }
-    printf("\n---\n");
-# endif
-}
-
 static void init_module() {
     target_riddle = mazes[rand() % NUM_MAZES];
     memcpy(target_riddle.target_position, target_riddle.target_positions[rand() % 3], 2);
     memcpy(target_riddle.current_position, target_riddle.start_positions[rand() % 3], 2);
-    print_playfield();
 }
 
 void module5_process(input_devices *input, output_devices *output, modules_state_t *module_state) {
@@ -238,6 +215,10 @@ void module5_process(input_devices *input, output_devices *output, modules_state
     if (!module_initialized) {
         init_module();
         module_initialized = true;
+        set_led(target_riddle.green_positions[0], GREEN);
+        set_led(target_riddle.green_positions[1], GREEN);
+        set_led(target_riddle.target_position, RED);
+        set_led(target_riddle.current_position, BLUE);
     }
 
 
@@ -278,21 +259,27 @@ void module5_process(input_devices *input, output_devices *output, modules_state
                 module_state->error_count += 1;
             }
 
-            print_playfield();
-
             if (same(target_riddle.current_position, target_riddle.target_position)) {
                 module_state->module_solved[MODULE_NUM] = true;
             }
 
+            // Output positions
+            for (uint8_t i=0; i<5; i++) {
+                for (uint8_t j=0; j<5; j++) {
+                    uint8_t clearpos[2] = {i, j};
+                    set_led(clearpos, 0);
+                }
+            }
+            set_led(target_riddle.green_positions[0], GREEN);
+            set_led(target_riddle.green_positions[1], GREEN);
+            set_led(target_riddle.target_position, RED);
+            set_led(target_riddle.current_position, BLUE);
+
+            // printf("%d - %d\n", target_riddle.current_position[0], target_riddle.current_position[1]);
         }
     } else {
         button_pressed = false;
     }
 
 
-    // Output positions
-    set_led(target_riddle.green_positions[0], GREEN);
-    set_led(target_riddle.green_positions[1], GREEN);
-    set_led(target_riddle.target_position, RED);
-    set_led(target_riddle.current_position, BLUE);
 }
