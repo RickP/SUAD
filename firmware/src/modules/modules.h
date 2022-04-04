@@ -4,10 +4,10 @@
 #include "pico/stdlib.h"
 #include "core1.h"
 
-#define RED 0x001800
-#define GREEN 0x180000
-#define BLUE 0x000018
-#define YELLOW 0x181800
+#define RED 0x001000
+#define GREEN 0x100000
+#define BLUE 0x000010
+#define YELLOW 0x101000
 
 // Struct for output device states
 typedef struct
