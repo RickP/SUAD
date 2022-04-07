@@ -42,15 +42,21 @@ static inline void set_array(uint32_t *array, uint32_t color, uint8_t length) {
 
 void set_all_leds(output_devices *output, uint32_t color) {
     set_array(output->error_leds, color, 3);
+
     output->radio_module_state = color;
     output->radio_module_blink = color;
+
     output->button_module_state = color;
     set_array(output->button_module_leds, color, 4);
+
     output->simon_module_state = color;
     output->simon_module_blink = color;
+
     output->dip_module_state = color;
     set_array(output->dip_module_top, color, 6);
     set_array(output->dip_module_bottom, color, 6);
+
+    output->maze_module_state = color;
     set_array(output->maze_module_leds[0], color, 5);
     set_array(output->maze_module_leds[1], color, 5);
     set_array(output->maze_module_leds[2], color, 5);
