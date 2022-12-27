@@ -10,6 +10,8 @@
 #define MORSE_LONG 500
 #define MORSE_PAUSE 500
 
+#define SHOW_FREQ 0
+
 static bool module_initialized = false;
 
 const uint8_t num_freqs = 8;
@@ -126,5 +128,18 @@ void module1_process(input_devices *input, output_devices *output, modules_state
         }
     } else if (button_pressed && !input->radio_transmit_key) {
         button_pressed = false;
+    }
+
+    if (SHOW_FREQ) {
+        static int showfreq_counter = 0;
+        if (showfreq_counter++ == 100000) {
+            for (uint8_t i=0; i < num_freqs; i++) {
+                if (input->poti_pos > radio_pos[i]) {
+                    printf("Frequency: %d\n", radio_freq[i]);
+                    break;
+                }
+            }
+            showfreq_counter = 0;
+        }
     }
 }

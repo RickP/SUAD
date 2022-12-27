@@ -24,6 +24,7 @@
  */
 
 #include "tusb.h"
+#include "pico/unique_id.h"
 
 /* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
  * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
@@ -35,8 +36,8 @@
 #define USB_PID           (0x4400 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
                            _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) )
 
-#define USB_VID   0xCafe
-#define USB_BCD   0x0200
+#define USB_VID   0xfefe
+#define USB_BCD   0x4223
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -79,6 +80,8 @@ uint8_t const * tud_descriptor_device_cb(void)
 
 enum
 {
+  ITF_NUM_CDC = 0,
+  ITF_NUM_CDC_DATA,
   ITF_NUM_MSC,
   ITF_NUM_TOTAL
 };
@@ -86,6 +89,9 @@ enum
 #if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
   // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In, 5 Bulk etc ...
+  #define EPNUM_CDC_NOTIF   0x81
+  #define EPNUM_CDC_OUT     0x02
+  #define EPNUM_CDC_IN      0x82
 
   #define EPNUM_MSC_OUT     0x05
   #define EPNUM_MSC_IN      0x85
@@ -93,6 +99,9 @@ enum
 #elif CFG_TUSB_MCU == OPT_MCU_SAMG  || CFG_TUSB_MCU ==  OPT_MCU_SAMX7X
   // SAMG & SAME70 don't support a same endpoint number with different direction IN and OUT
   //    e.g EP1 OUT & EP1 IN cannot exist together
+  #define EPNUM_CDC_NOTIF   0x81
+  #define EPNUM_CDC_OUT     0x02
+  #define EPNUM_CDC_IN      0x83
 
   #define EPNUM_MSC_OUT     0x04
   #define EPNUM_MSC_IN      0x85
@@ -102,31 +111,33 @@ enum
   //    e.g EP1 OUT & EP1 IN cannot exist together
   // CXD56 USB driver has fixed endpoint type (bulk/interrupt/iso) and direction (IN/OUT) by its number
   // 0 control (IN/OUT), 1 Bulk (IN), 2 Bulk (OUT), 3 In (IN), 4 Bulk (IN), 5 Bulk (OUT), 6 In (IN)
+  #define EPNUM_CDC_NOTIF   0x83
+  #define EPNUM_CDC_OUT     0x02
+  #define EPNUM_CDC_IN      0x81
 
   #define EPNUM_MSC_OUT     0x05
   #define EPNUM_MSC_IN      0x84
 
-#elif CFG_TUSB_MCU == OPT_MCU_FT90X || CFG_TUSB_MCU == OPT_MCU_FT93X
-  // FT9XX doesn't support a same endpoint number with different direction IN and OUT
-  //    e.g EP1 OUT & EP1 IN cannot exist together
-
-  #define EPNUM_MSC_OUT     0x04
-  #define EPNUM_MSC_IN      0x85
-
 #else
+  #define EPNUM_CDC_NOTIF   0x81
+  #define EPNUM_CDC_OUT     0x02
+  #define EPNUM_CDC_IN      0x82
 
   #define EPNUM_MSC_OUT     0x03
   #define EPNUM_MSC_IN      0x83
 
 #endif
 
-#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_MSC_DESC_LEN)
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN)
 
 // full speed configuration
 uint8_t const desc_fs_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+
+  // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
 
   // Interface number, string index, EP Out & EP In address, EP size
   TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64),
@@ -140,6 +151,9 @@ uint8_t const desc_hs_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+
+  // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 512),
 
   // Interface number, string index, EP Out & EP In address, EP size
   TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 512),
@@ -213,14 +227,17 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 // String Descriptors
 //--------------------------------------------------------------------+
 
+static char usbd_serial_str[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
+
 // array of pointer to string descriptors
 char const* string_desc_arr [] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-  "Rick",                     // 1: Manufacturer
-  "Shut Up And Die!",              // 2: Product
-  "123456789012",                // 3: Serials, should use chip ID
-  "Instructions!",                 // 4: MSC Interface
+  "TinyUSB",                     // 1: Manufacturer
+  "TinyUSB Device",              // 2: Product
+  usbd_serial_str,               // 3: Serials, should use chip ID
+  "TinyUSB CDC",                 // 4: CDC Interface
+  "TinyUSB MSC",                 // 5: MSC Interface
 };
 
 static uint16_t _desc_str[32];
@@ -247,7 +264,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
     const char* str = string_desc_arr[index];
 
     // Cap at max char
-    chr_count = (uint8_t) strlen(str);
+    chr_count = strlen(str);
     if ( chr_count > 31 ) chr_count = 31;
 
     // Convert ASCII string into UTF-16

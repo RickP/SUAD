@@ -29,6 +29,7 @@ target_sources(${APP} PUBLIC
     src/lib/non_blocking_timer.c
     src/usb/usb_descriptors.c
     src/usb/msc_disk.c
+    src/usb/usb_service.c
 )
 
 pico_generate_pio_header(${APP} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
@@ -45,7 +46,7 @@ target_include_directories(${APP} PUBLIC
 )
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(${APP} PUBLIC pico_stdlib pico_multicore pico_sync hardware_pio hardware_adc tinyusb_device tinyusb_board)
+target_link_libraries(${APP} PUBLIC pico_stdlib pico_multicore pico_sync pico_unique_id hardware_pio hardware_adc tinyusb_device tinyusb_board)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(${APP})

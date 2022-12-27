@@ -732,6 +732,8 @@ src/usb/content_minimal.h
 src/usb/msc_disk.c
 src/usb/tusb_config.h
 src/usb/usb_descriptors.c
+src/usb/usb_service.c
+src/usb/usb_service.h
 src/usb_descriptors.c
 src/ws2812.pio
 usb_files/readme.pdf
