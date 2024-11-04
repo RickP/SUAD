@@ -53,6 +53,7 @@ pico_add_extra_outputs(${APP})
 add_custom_target(pack_files
     COMMAND python3 ../pack_msc_files.py
 )
+add_dependencies(${APP} pack_files)
 
 add_custom_target(small_msc
     COMMAND cp ../src/usb/content_minimal.h ../src/usb/content.h

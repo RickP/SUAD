@@ -35,3 +35,4 @@ build
 *.creator.user
 .DS_Store
 source.zip
+content.h
