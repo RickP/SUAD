@@ -29,12 +29,10 @@ target_sources(${APP} PUBLIC
     src/lib/non_blocking_timer.c
     src/usb/usb_descriptors.c
     src/usb/msc_disk.c
+    src/usb/usb_service.c
 )
 
 pico_generate_pio_header(${APP} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
-
-pico_enable_stdio_uart(${APP} 1)
-pico_enable_stdio_usb(${APP} 0)
 
 # Make sure headers can be found
 target_include_directories(${APP} PUBLIC

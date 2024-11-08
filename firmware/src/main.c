@@ -8,6 +8,7 @@
 #include "non_blocking_timer.h"
 #include "core1.h"
 #include "modules.h"
+#include "usb_service.h"
 
 critical_section_t critical_input;
 critical_section_t critical_output;
@@ -32,6 +33,7 @@ int main() {
 
     stdio_init_all();
     init_systick();
+    usb_init();
 
     critical_section_init(&critical_input);
     critical_section_init(&critical_output);
