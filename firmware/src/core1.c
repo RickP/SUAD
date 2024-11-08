@@ -6,7 +6,6 @@
 #include "non_blocking_timer.h"
 #include "core1.h"
 #include "ws2812.pio.h"
-#include "tusb.h"
 
 static void set_pixels(output_devices *output);
 static void drive_segment(output_devices *output);
@@ -26,8 +25,6 @@ static output_devices output;
 #define DEBOUNCE_LOOPS_DIP DEBOUNCE_LOOPS * 10
 
 void core1_entry() {
-
-    tusb_init();
 
     // Init ws2812 pio
     PIO pio = pio0;
@@ -57,7 +54,6 @@ void core1_entry() {
     adc_gpio_init(28);
     adc_select_input(2);
 
-
     // Initialize jumpers
     gpio_init(TIME_JUMPER);
     gpio_set_dir(TIME_JUMPER, false);
@@ -74,7 +70,6 @@ void core1_entry() {
     }
 
     while (true) {
-        tud_task();
 
         // Get current input GPIO states and send them to core0
         check_input(&input);
@@ -114,7 +109,19 @@ static void check_input(input_devices* input) {
     static bool last_key_state[3][6];
     int row = 0;
 
-    input->poti_pos = adc_read();
+    static int do_adc = 0;
+    if (do_adc++ > 100) {
+        input->poti_pos = adc_read();
+        do_adc = 0;
+    }
+    
+    if (SHOW_POTI) {
+        static int printcounter = 0;
+        if (printcounter++ > 1000) {
+            printf("Poti: %d\n", input->poti_pos);
+            printcounter = 0;
+        }
+    }
 
     // Check row 1
     gpio_set_dir(27, true);

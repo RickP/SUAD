@@ -13,7 +13,7 @@
 static bool module_initialized = false;
 
 const uint8_t num_freqs = 8;
-const uint16_t radio_pos[] = {3900, 3550, 3050, 2500, 1950, 1300, 850, 700};
+const uint16_t radio_pos[] = {3700, 3300, 2800, 2200, 1600, 1100, 680, 500};
 const uint16_t radio_freq[] = {500, 510, 520, 530, 540, 550, 560, 570};
 
 uint16_t target_freq = 0;

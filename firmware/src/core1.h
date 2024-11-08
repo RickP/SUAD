@@ -5,7 +5,8 @@
 #include "pico/multicore.h"
 
 #define SHOW_LOOPS 0
-#define SHOW_KEYPRESS 1
+#define SHOW_POTI 0
+#define SHOW_KEYPRESS 0
 
 void core1_entry();
 

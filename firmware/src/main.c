@@ -9,6 +9,7 @@
 #include "core1.h"
 #include "modules.h"
 #include "usb_service.h"
+#include "tusb.h"
 
 critical_section_t critical_input;
 critical_section_t critical_output;
@@ -90,6 +91,10 @@ int main() {
     }
 
     while (true) {
+
+        if (stdio_usb_connected()) {
+            tud_task();
+        }
 
         get_input(&input, false);
 
