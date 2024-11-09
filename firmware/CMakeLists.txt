@@ -29,7 +29,6 @@ target_sources(${APP} PUBLIC
     src/lib/non_blocking_timer.c
     src/usb/usb_descriptors.c
     src/usb/msc_disk.c
-    src/usb/usb_service.c
 )
 
 pico_generate_pio_header(${APP} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/build)

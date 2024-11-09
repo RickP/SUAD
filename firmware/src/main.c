@@ -8,7 +8,6 @@
 #include "non_blocking_timer.h"
 #include "core1.h"
 #include "modules.h"
-#include "usb_service.h"
 #include "tusb.h"
 
 critical_section_t critical_input;
@@ -34,7 +33,7 @@ int main() {
 
     stdio_init_all();
     init_systick();
-    usb_init();
+    tusb_init();
 
     critical_section_init(&critical_input);
     critical_section_init(&critical_output);
@@ -92,9 +91,7 @@ int main() {
 
     while (true) {
 
-        if (stdio_usb_connected()) {
-            tud_task();
-        }
+        tud_task();
 
         get_input(&input, false);
 
